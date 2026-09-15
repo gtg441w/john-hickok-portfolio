@@ -1,0 +1,20 @@
+/* The one global stylesheet. Imported once, in app/layout.tsx.
+ *
+ * Order is load-bearing. The fork is an AMENDMENT to the shipped system: it is
+ * written at the same specificity as the rules it amends and wins only by being
+ * later in the cascade. Importing it first silently reverts the amendment.
+ *
+ *   1. _ds/.../styles.css  — the shipped Frostwork v0.3 (itself a chain of
+ *                            @imports: fonts, typography, colors, semantic, space,
+ *                            glass, refraction, brand, backdrops, ambient, motion,
+ *                            base). Paths inside it are relative to that folder,
+ *                            so the folder is copied intact and never flattened.
+ *   2. _ds_fork/…          — "blur wins wherever AA holds". See CLAUDE.md.
+ *
+ * Do not port either file into CSS modules, CSS-in-JS or Tailwind. Both are a
+ * cascade of derived custom properties and attribute selectors; reimplementing
+ * them is how the derivations get lost.
+ */
+
+@import url("../styles/_ds/frostwork-glass-system-ed2eccc0-dde4-4f48-b50a-cd723a61fdcb/styles.css");
+@import url("../styles/_ds_fork/frostwork-blur-first.css");

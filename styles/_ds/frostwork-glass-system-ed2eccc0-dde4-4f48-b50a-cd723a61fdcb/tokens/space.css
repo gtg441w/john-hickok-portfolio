@@ -1,0 +1,68 @@
+/* ── The 8px unit ──────────────────────────────────────────────────────────────
+   Every LAYOUT dimension is a multiple of --unit: spacing, radii, control heights,
+   gutters, insets. A layout value that cannot be expressed as n × 8 (or a named
+   half-step) is a value that will not align with anything else.
+
+   The unit governs layout, not everything. Type sizes (tokens/typography.css) are
+   authored on their own perceptual scale — 12/14/16/20/28/44/68/102 — because
+   optical steps between sizes are not multiples of a layout grid, and forcing them
+   onto one produces either too few small rungs or too little separation at the top.
+   Blur radii (tokens/glass.css) are likewise optical. Those are stated exceptions,
+   alongside --hairline, --radius-pill and --touch-min below.
+
+   8 rather than 4 as the base, because a 4px grid permits so many values it stops
+   constraining anything — the point of a unit is the options it removes. Two
+   half-steps survive as named exceptions for dense interior work (chip padding,
+   icon gaps) where a full unit is visibly too much; they are deliberately the only
+   two, and they are labelled as halves so a reviewer can see the exception being
+   taken. Everything else is a whole multiple.
+
+   Changing --unit rescales the entire system proportionally — spacing, radii,
+   control heights, grid gutters. That is the test of whether a unit is real.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root{
+--unit:8px;
+
+/* spacing — n × unit, with the multiplier in the comment so the grid is legible */
+--space-1:calc(var(--unit) * 0.5);  /* 4  · half-step, dense interiors only */
+--space-2:var(--unit);              /* 8  · 1 */
+--space-3:calc(var(--unit) * 1.5);  /* 12 · half-step, dense interiors only */
+--space-4:calc(var(--unit) * 2);    /* 16 · 2 */
+--space-5:calc(var(--unit) * 3);    /* 24 · 3 */
+--space-6:calc(var(--unit) * 4);    /* 32 · 4 */
+--space-7:calc(var(--unit) * 6);    /* 48 · 6 */
+--space-8:calc(var(--unit) * 8);    /* 64 · 8 */
+--space-9:calc(var(--unit) * 12);   /* 96 · 12 · section breaks */
+
+/* radii — whole units, so a corner always resolves against the same grid */
+--radius-sm:var(--unit);            /* 8  · 1 */
+--radius-md:calc(var(--unit) * 2);  /* 16 · 2 */
+--radius-lg:calc(var(--unit) * 3);  /* 24 · 3 */
+--radius-xl:calc(var(--unit) * 4);  /* 32 · 4 */
+--radius-pill:999px;
+
+/* control heights — every interactive box lands on a whole unit, which is what
+   makes controls of different kinds line up in a row without adjustment */
+--control-sm:calc(var(--unit) * 4); /* 32 · 4 */
+--control-md:calc(var(--unit) * 5); /* 40 · 5 */
+--control-lg:calc(var(--unit) * 6); /* 48 · 6 */
+--nav-height:calc(var(--unit) * 7); /* 56 · 7 */
+
+/* the 44px minimum touch target is 5.5 units — the one place the grid loses to a
+   platform requirement, so --control-md (40) must gain padding, never be used bare */
+--touch-min:44px;
+
+/* horizontal grid: 12 columns at tablet and up, 6 on mobile */
+--grid-columns:12 /* @kind other */;
+--grid-gutter:var(--space-5);
+--grid-margin:var(--space-6);
+--stage-inset:var(--space-5);
+
+/* hairlines are the deliberate exception: a border exists to be 1 device pixel,
+   not to participate in the spacing grid */
+--hairline:1px;
+}
+@media (max-width:719px){:root{--grid-columns:6 /* @kind other */;--grid-gutter:var(--space-4);--grid-margin:var(--space-4)}}
+@media (min-width:720px) and (max-width:1023px){:root{--grid-margin:var(--space-5)}}
+
+.grid{display:grid;grid-template-columns:repeat(var(--grid-columns),minmax(0,1fr));gap:var(--grid-gutter);padding-inline:var(--grid-margin)}

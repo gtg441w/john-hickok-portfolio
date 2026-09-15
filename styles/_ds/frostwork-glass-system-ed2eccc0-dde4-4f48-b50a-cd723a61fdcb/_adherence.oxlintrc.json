@@ -1,0 +1,640 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "components/forms/**",
+              "components/motion/**",
+              "components/primitives/**",
+              "components/surfaces/**",
+              "guidelines/**",
+              "ui_kits/conformance/**",
+              "ui_kits/glass-lab/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Outfit|Open Sans))/i]",
+        "message": "Font not provided by the design system. Available: Outfit, Open Sans."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='BackdropStage'] > JSXAttribute > JSXIdentifier[name!=/^(?:mood|mode|luma|density|tier|image|height|radius|children|key|ref|className|style|children)$/]",
+        "message": "<BackdropStage> doesn't accept that prop. Declared props: mood, mode, luma, density, tier, image, height, radius, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='BackdropStage'] > JSXAttribute[name.name='mood'] > Literal[value!=/^(?:warm|cool|busy|plain)$/]",
+        "message": "<BackdropStage> mood must be one of 'warm' | 'cool' | 'busy' | 'plain'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='BackdropStage'] > JSXAttribute[name.name='mode'] > Literal[value!=/^(?:light|dark)$/]",
+        "message": "<BackdropStage> mode must be one of 'light' | 'dark'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='BackdropStage'] > JSXAttribute[name.name='luma'] > Literal[value!=/^(?:light|dark)$/]",
+        "message": "<BackdropStage> luma must be one of 'light' | 'dark'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Checkbox'] > JSXAttribute > JSXIdentifier[name!=/^(?:checked|defaultChecked|onChange|readOnly|label|description|disabled|style|key|ref|className|style|children)$/]",
+        "message": "<Checkbox> doesn't accept that prop. Declared props: checked, defaultChecked, onChange, readOnly, label, description, disabled, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Choreography'] > JSXAttribute > JSXIdentifier[name!=/^(?:parallax|stagger|rootMargin|as|children|key|ref|className|style|children)$/]",
+        "message": "<Choreography> doesn't accept that prop. Declared props: parallax, stagger, rootMargin, as, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='ContentPlane'] > JSXAttribute > JSXIdentifier[name!=/^(?:padding|as|children|key|ref|className|style|children)$/]",
+        "message": "<ContentPlane> doesn't accept that prop. Declared props: padding, as, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Field'] > JSXAttribute > JSXIdentifier[name!=/^(?:label|description|error|required|htmlFor|children|key|ref|className|style|children)$/]",
+        "message": "<Field> doesn't accept that prop. Declared props: label, description, error, required, htmlFor, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GlassButton'] > JSXAttribute > JSXIdentifier[name!=/^(?:size|fill|emphasis|tone|disabled|children|key|ref|className|style|children)$/]",
+        "message": "<GlassButton> doesn't accept that prop. Declared props: size, fill, emphasis, tone, disabled, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GlassButton'] > JSXAttribute[name.name='size'] > Literal[value!=/^(?:sm|md)$/]",
+        "message": "<GlassButton> size must be one of 'sm' | 'md'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GlassCard'] > JSXAttribute > JSXIdentifier[name!=/^(?:eyebrow|title|body|meta|fill|scrim|spec|children|key|ref|className|style|children)$/]",
+        "message": "<GlassCard> doesn't accept that prop. Declared props: eyebrow, title, body, meta, fill, scrim, spec, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GlassModal'] > JSXAttribute > JSXIdentifier[name!=/^(?:title|body|actions|fill|open|onClose|scrimOpacity|children|key|ref|className|style|children)$/]",
+        "message": "<GlassModal> doesn't accept that prop. Declared props: title, body, actions, fill, open, onClose, scrimOpacity, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GlassNav'] > JSXAttribute > JSXIdentifier[name!=/^(?:brand|items|active|onSelect|fill|trailing|key|ref|className|style|children)$/]",
+        "message": "<GlassNav> doesn't accept that prop. Declared props: brand, items, active, onSelect, fill, trailing."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GlassSearch'] > JSXAttribute > JSXIdentifier[name!=/^(?:placeholder|value|onChange|onSubmit|open|width|fill|key|ref|className|style|children)$/]",
+        "message": "<GlassSearch> doesn't accept that prop. Declared props: placeholder, value, onChange, onSubmit, open, width, fill."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GlassSegmented'] > JSXAttribute > JSXIdentifier[name!=/^(?:items|value|onChange|size|fill|key|ref|className|style|children)$/]",
+        "message": "<GlassSegmented> doesn't accept that prop. Declared props: items, value, onChange, size, fill."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GlassSegmented'] > JSXAttribute[name.name='size'] > Literal[value!=/^(?:sm|md)$/]",
+        "message": "<GlassSegmented> size must be one of 'sm' | 'md'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='GlassSurface'] > JSXAttribute > JSXIdentifier[name!=/^(?:level|fill|emphasis|tone|refract|interactive|scrim|as|children|key|ref|className|style|children)$/]",
+        "message": "<GlassSurface> doesn't accept that prop. Declared props: level, fill, emphasis, tone, refract, interactive, scrim, as, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Icon'] > JSXAttribute > JSXIdentifier[name!=/^(?:size|label|children|key|ref|className|style|children)$/]",
+        "message": "<Icon> doesn't accept that prop. Declared props: size, label, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Icon'] > JSXAttribute[name.name='size'] > Literal[value!=/^(?:sm|md|lg|xl)$/]",
+        "message": "<Icon> size must be one of 'sm' | 'md' | 'lg' | 'xl'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Input'] > JSXAttribute > JSXIdentifier[name!=/^(?:invalid|key|ref|className|style|children)$/]",
+        "message": "<Input> doesn't accept that prop. Declared props: invalid."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='LiveBackdrop'] > JSXAttribute > JSXIdentifier[name!=/^(?:effect|mood|density|speed|interactive|showDots|mode|luma|stageDensity|tier|height|radius|children|key|ref|className|style|children)$/]",
+        "message": "<LiveBackdrop> doesn't accept that prop. Declared props: effect, mood, density, speed, interactive, showDots, mode, luma, stageDensity, tier, height, radius, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='LiveBackdrop'] > JSXAttribute[name.name='density'] > Literal[value!=/^(?:low|medium|high)$/]",
+        "message": "<LiveBackdrop> density must be one of 'low' | 'medium' | 'high'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='LiveBackdrop'] > JSXAttribute[name.name='mode'] > Literal[value!=/^(?:light|dark)$/]",
+        "message": "<LiveBackdrop> mode must be one of 'light' | 'dark'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='LiveBackdrop'] > JSXAttribute[name.name='luma'] > Literal[value!=/^(?:light|dark)$/]",
+        "message": "<LiveBackdrop> luma must be one of 'light' | 'dark'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Select'] > JSXAttribute > JSXIdentifier[name!=/^(?:invalid|options|placeholder|key|ref|className|style|children)$/]",
+        "message": "<Select> doesn't accept that prop. Declared props: invalid, options, placeholder."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='SpecChip'] > JSXAttribute > JSXIdentifier[name!=/^(?:blur|opacity|override|key|ref|className|style|children)$/]",
+        "message": "<SpecChip> doesn't accept that prop. Declared props: blur, opacity, override."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Stack'] > JSXAttribute > JSXIdentifier[name!=/^(?:direction|gap|align|justify|wrap|inline|padding|as|children|key|ref|className|style|children)$/]",
+        "message": "<Stack> doesn't accept that prop. Declared props: direction, gap, align, justify, wrap, inline, padding, as, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Stack'] > JSXAttribute[name.name='direction'] > Literal[value!=/^(?:row|column)$/]",
+        "message": "<Stack> direction must be one of 'row' | 'column'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Switch'] > JSXAttribute > JSXIdentifier[name!=/^(?:checked|onChange|label|disabled|style|key|ref|className|style|children)$/]",
+        "message": "<Switch> doesn't accept that prop. Declared props: checked, onChange, label, disabled, style."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Text'] > JSXAttribute > JSXIdentifier[name!=/^(?:role|tone|weight|align|as|plane|numeric|mono|children|key|ref|className|style|children)$/]",
+        "message": "<Text> doesn't accept that prop. Declared props: role, tone, weight, align, as, plane, numeric, mono, children."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Text'] > JSXAttribute[name.name='align'] > Literal[value!=/^(?:left|center|right)$/]",
+        "message": "<Text> align must be one of 'left' | 'center' | 'right'."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='Textarea'] > JSXAttribute > JSXIdentifier[name!=/^(?:invalid|rows|key|ref|className|style|children)$/]",
+        "message": "<Textarea> doesn't accept that prop. Declared props: invalid, rows."
+      },
+      {
+        "selector": "JSXOpeningElement[name.name='VisuallyHidden'] > JSXAttribute > JSXIdentifier[name!=/^(?:as|children|key|ref|className|style|children)$/]",
+        "message": "<VisuallyHidden> doesn't accept that prop. Declared props: as, children."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {
+      "BackdropStage": {
+        "replaces": []
+      },
+      "Checkbox": {
+        "replaces": []
+      },
+      "Choreography": {
+        "replaces": []
+      },
+      "ContentPlane": {
+        "replaces": []
+      },
+      "Field": {
+        "replaces": []
+      },
+      "GlassButton": {
+        "replaces": []
+      },
+      "GlassCard": {
+        "replaces": []
+      },
+      "GlassModal": {
+        "replaces": []
+      },
+      "GlassNav": {
+        "replaces": []
+      },
+      "GlassSearch": {
+        "replaces": []
+      },
+      "GlassSegmented": {
+        "replaces": []
+      },
+      "GlassSurface": {
+        "replaces": []
+      },
+      "Icon": {
+        "replaces": []
+      },
+      "Input": {
+        "replaces": []
+      },
+      "LiveBackdrop": {
+        "replaces": []
+      },
+      "Select": {
+        "replaces": []
+      },
+      "SpecChip": {
+        "replaces": []
+      },
+      "Stack": {
+        "replaces": []
+      },
+      "Switch": {
+        "replaces": []
+      },
+      "Text": {
+        "replaces": []
+      },
+      "Textarea": {
+        "replaces": []
+      },
+      "VisuallyHidden": {
+        "replaces": []
+      }
+    },
+    "tokens": [
+      "--accent",
+      "--accent-foreground",
+      "--background",
+      "--border",
+      "--card",
+      "--card-foreground",
+      "--control-lg",
+      "--control-md",
+      "--control-sm",
+      "--danger",
+      "--danger-fg",
+      "--danger-glass",
+      "--danger-on-dark",
+      "--danger-on-light",
+      "--destructive",
+      "--destructive-foreground",
+      "--dur-reveal",
+      "--dur-stage",
+      "--ease-glass",
+      "--fallback-mono",
+      "--fallback-sans",
+      "--family-display",
+      "--family-mono",
+      "--family-ui",
+      "--focus-inner",
+      "--focus-outer",
+      "--focus-width-inner",
+      "--focus-width-outer",
+      "--font-display",
+      "--font-mono",
+      "--font-ui",
+      "--foreground",
+      "--glass-accent-ink",
+      "--glass-alpha",
+      "--glass-alpha-per-depth",
+      "--glass-base-alpha",
+      "--glass-blur",
+      "--glass-brightness",
+      "--glass-density-alpha",
+      "--glass-depth",
+      "--glass-depth-button",
+      "--glass-depth-card",
+      "--glass-depth-modal",
+      "--glass-depth-nav",
+      "--glass-edge",
+      "--glass-edge-inner",
+      "--glass-edge-override",
+      "--glass-edge-under",
+      "--glass-emphasis-alpha",
+      "--glass-fill-c",
+      "--glass-fill-gain",
+      "--glass-fill-l",
+      "--glass-fill-override",
+      "--glass-fill-override-dark",
+      "--glass-fill-override-light",
+      "--glass-focus-ring",
+      "--glass-glow",
+      "--glass-glow-size",
+      "--glass-halo",
+      "--glass-muted-c",
+      "--glass-muted-l",
+      "--glass-radius-button",
+      "--glass-radius-card",
+      "--glass-radius-modal",
+      "--glass-radius-nav",
+      "--glass-saturate",
+      "--glass-shadow",
+      "--glass-solid",
+      "--glass-solid-text",
+      "--glass-text",
+      "--glass-text-muted",
+      "--glass-text-override",
+      "--glass-text-override-muted",
+      "--glass-tint",
+      "--glass-tint-dark",
+      "--glass-tint-light",
+      "--glass-tone-alpha",
+      "--glass-tone-rgb",
+      "--grid-columns",
+      "--grid-gutter",
+      "--grid-margin",
+      "--hairline",
+      "--input",
+      "--leading-body",
+      "--leading-display",
+      "--leading-hero",
+      "--leading-lead",
+      "--leading-mega",
+      "--leading-micro",
+      "--leading-small",
+      "--leading-snug",
+      "--leading-tight",
+      "--leading-title",
+      "--line-hairline",
+      "--muted",
+      "--muted-foreground",
+      "--n-0",
+      "--n-1",
+      "--n-2",
+      "--n-3",
+      "--n-4",
+      "--n-5",
+      "--n-6",
+      "--n-7",
+      "--n-8",
+      "--n-9",
+      "--nav-height",
+      "--parallax-depth",
+      "--popover",
+      "--popover-foreground",
+      "--primary",
+      "--primary-fg",
+      "--radius",
+      "--radius-concentric",
+      "--radius-lg",
+      "--radius-md",
+      "--radius-parent",
+      "--radius-pill",
+      "--radius-sm",
+      "--radius-xl",
+      "--reveal-cap",
+      "--reveal-hold",
+      "--reveal-rise",
+      "--reveal-step",
+      "--ring",
+      "--scroll-edge-size",
+      "--scroll-edge-strength",
+      "--secondary",
+      "--secondary-fg",
+      "--space-1",
+      "--space-2",
+      "--space-3",
+      "--space-4",
+      "--space-5",
+      "--space-6",
+      "--space-7",
+      "--space-8",
+      "--space-9",
+      "--stage-inset",
+      "--stage-tone-rgb",
+      "--stage-transmission",
+      "--success",
+      "--success-fg",
+      "--success-glass",
+      "--success-on-dark",
+      "--success-on-light",
+      "--surface-card",
+      "--surface-page",
+      "--text-body",
+      "--text-display",
+      "--text-faint",
+      "--text-hero",
+      "--text-lead",
+      "--text-mega",
+      "--text-micro",
+      "--text-muted",
+      "--text-small",
+      "--text-strong",
+      "--text-title",
+      "--touch-min",
+      "--tracking-body",
+      "--tracking-display",
+      "--tracking-hero",
+      "--tracking-lead",
+      "--tracking-mega",
+      "--tracking-micro",
+      "--tracking-small",
+      "--tracking-title",
+      "--type-1",
+      "--type-2",
+      "--type-3",
+      "--type-4",
+      "--type-5",
+      "--type-6",
+      "--type-7",
+      "--type-8",
+      "--unit",
+      "--warning",
+      "--warning-fg",
+      "--warning-glass",
+      "--warning-on-dark",
+      "--warning-on-light",
+      "--weight-bold",
+      "--weight-medium",
+      "--weight-regular",
+      "--weight-semibold"
+    ],
+    "tokenKinds": {
+      "--family-display": "font",
+      "--family-ui": "font",
+      "--family-mono": "font",
+      "--fallback-sans": "font",
+      "--fallback-mono": "font",
+      "--font-display": "font",
+      "--font-ui": "font",
+      "--font-mono": "font",
+      "--type-1": "font",
+      "--type-2": "font",
+      "--type-3": "font",
+      "--type-4": "font",
+      "--type-5": "font",
+      "--type-6": "font",
+      "--type-7": "font",
+      "--type-8": "font",
+      "--text-micro": "font",
+      "--text-small": "font",
+      "--text-body": "font",
+      "--text-lead": "font",
+      "--text-title": "font",
+      "--text-display": "font",
+      "--text-hero": "font",
+      "--text-mega": "font",
+      "--leading-micro": "font",
+      "--leading-small": "font",
+      "--leading-body": "font",
+      "--leading-lead": "font",
+      "--leading-title": "font",
+      "--leading-display": "font",
+      "--leading-hero": "font",
+      "--leading-mega": "font",
+      "--tracking-micro": "font",
+      "--tracking-small": "font",
+      "--tracking-body": "font",
+      "--tracking-lead": "font",
+      "--tracking-title": "font",
+      "--tracking-display": "font",
+      "--tracking-hero": "font",
+      "--tracking-mega": "font",
+      "--weight-regular": "font",
+      "--weight-semibold": "font",
+      "--weight-medium": "font",
+      "--weight-bold": "font",
+      "--leading-tight": "font",
+      "--leading-snug": "font",
+      "--n-0": "color",
+      "--n-1": "color",
+      "--n-2": "color",
+      "--n-3": "color",
+      "--n-4": "color",
+      "--n-5": "color",
+      "--n-6": "color",
+      "--n-7": "color",
+      "--n-8": "color",
+      "--n-9": "color",
+      "--text-strong": "font",
+      "--text-muted": "font",
+      "--text-faint": "font",
+      "--surface-page": "color",
+      "--surface-card": "color",
+      "--line-hairline": "color",
+      "--success": "color",
+      "--success-fg": "color",
+      "--warning": "color",
+      "--warning-fg": "color",
+      "--danger": "color",
+      "--danger-fg": "color",
+      "--success-glass": "color",
+      "--warning-glass": "color",
+      "--danger-glass": "color",
+      "--success-on-dark": "color",
+      "--warning-on-dark": "color",
+      "--danger-on-dark": "color",
+      "--success-on-light": "color",
+      "--warning-on-light": "color",
+      "--danger-on-light": "color",
+      "--focus-inner": "color",
+      "--focus-outer": "color",
+      "--focus-width-inner": "spacing",
+      "--focus-width-outer": "spacing",
+      "--glass-focus-ring": "shadow",
+      "--unit": "spacing",
+      "--space-1": "spacing",
+      "--space-2": "spacing",
+      "--space-3": "spacing",
+      "--space-4": "spacing",
+      "--space-5": "spacing",
+      "--space-6": "spacing",
+      "--space-7": "spacing",
+      "--space-8": "spacing",
+      "--space-9": "spacing",
+      "--radius-sm": "radius",
+      "--radius-md": "radius",
+      "--radius-lg": "radius",
+      "--radius-xl": "radius",
+      "--radius-pill": "radius",
+      "--control-sm": "color",
+      "--control-md": "color",
+      "--control-lg": "color",
+      "--nav-height": "color",
+      "--touch-min": "spacing",
+      "--grid-columns": "other",
+      "--grid-gutter": "color",
+      "--grid-margin": "spacing",
+      "--stage-inset": "spacing",
+      "--hairline": "spacing",
+      "--glass-depth-button": "other",
+      "--glass-depth-nav": "other",
+      "--glass-depth-card": "other",
+      "--glass-depth-modal": "other",
+      "--glass-base-alpha": "other",
+      "--glass-alpha-per-depth": "other",
+      "--glass-density-alpha": "other",
+      "--glass-tone-rgb": "color",
+      "--glass-tone-alpha": "other",
+      "--glass-saturate": "other",
+      "--glass-brightness": "other",
+      "--glass-radius-button": "radius",
+      "--glass-radius-nav": "radius",
+      "--glass-radius-card": "radius",
+      "--glass-radius-modal": "radius",
+      "--glass-tint-light": "color",
+      "--glass-tint-dark": "color",
+      "--glass-fill-override-light": "color",
+      "--glass-fill-override-dark": "color",
+      "--glass-fill-l": "color",
+      "--glass-fill-gain": "other",
+      "--glass-fill-c": "other",
+      "--radius-parent": "radius",
+      "--radius-concentric": "radius",
+      "--scroll-edge-size": "spacing",
+      "--scroll-edge-strength": "other",
+      "--glass-tint": "color",
+      "--glass-edge": "color",
+      "--glass-edge-inner": "color",
+      "--glass-edge-under": "color",
+      "--glass-glow": "color",
+      "--glass-glow-size": "spacing",
+      "--glass-shadow": "shadow",
+      "--glass-halo": "shadow",
+      "--glass-fill-override": "color",
+      "--glass-muted-l": "spacing",
+      "--glass-muted-c": "other",
+      "--glass-solid": "color",
+      "--glass-solid-text": "font",
+      "--glass-edge-override": "color",
+      "--glass-text-override": "font",
+      "--glass-text-override-muted": "font",
+      "--glass-text": "font",
+      "--glass-text-muted": "font",
+      "--stage-transmission": "other",
+      "--glass-depth": "color",
+      "--glass-blur": "color",
+      "--glass-alpha": "color",
+      "--glass-emphasis-alpha": "other",
+      "--primary": "color",
+      "--primary-fg": "color",
+      "--secondary": "color",
+      "--secondary-fg": "color",
+      "--muted": "color",
+      "--accent": "color",
+      "--destructive": "color",
+      "--destructive-foreground": "color",
+      "--ring": "color",
+      "--radius": "radius",
+      "--background": "color",
+      "--foreground": "color",
+      "--card": "color",
+      "--card-foreground": "color",
+      "--popover": "color",
+      "--popover-foreground": "color",
+      "--muted-foreground": "color",
+      "--accent-foreground": "color",
+      "--border": "color",
+      "--input": "color",
+      "--glass-accent-ink": "color",
+      "--stage-tone-rgb": "color",
+      "--ease-glass": "other",
+      "--dur-reveal": "other",
+      "--dur-stage": "other",
+      "--reveal-hold": "other",
+      "--reveal-step": "other",
+      "--reveal-cap": "other",
+      "--reveal-rise": "spacing",
+      "--parallax-depth": "spacing"
+    },
+    "fontFamilies": [
+      "Open Sans",
+      "Outfit"
+    ]
+  }
+}

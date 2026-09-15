@@ -1,0 +1,35 @@
+/* ── Tier 2 · refraction ───────────────────────────────────────────────────────
+   Opt-in edge distortion. Reasoning, constraints and the reason this is not a rim
+   layer all live in components/surfaces/refraction.js — read that first.
+
+   Everything here is gated twice: on [data-refraction="on"], published by that
+   module only when the browser parses url() inside backdrop-filter, and on the
+   author writing data-glass-refract. Neither gate present means these rules never
+   match and the surface is specular-only. That is the 1.0 baseline; refraction is
+   additive and never load-bearing.
+
+   Note what is NOT touched: box-shadow. The four-layer specular stack is the
+   material (L2-specular) and refraction adds to it rather than replacing it —
+   these rules only extend the backdrop-filter chain. */
+
+[data-refraction="on"] .glass[data-glass-refract="subtle"]{-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness)) url(#frost-refract-subtle);backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness)) url(#frost-refract-subtle)}
+[data-refraction="on"] .glass[data-glass-refract="medium"]{-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness)) url(#frost-refract-medium);backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness)) url(#frost-refract-medium)}
+[data-refraction="on"] .glass[data-glass-refract="strong"]{-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness)) url(#frost-refract-strong);backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness)) url(#frost-refract-strong)}
+
+/* ── Where refraction is switched off entirely ─────────────────────────────────
+   Every path that makes the fill opaque also makes refraction meaningless: there
+   is no longer a backdrop being sampled, and a displacement on nothing is pure
+   cost. Density 2, per-surface fill overrides, reduced transparency and increased
+   contrast therefore drop the whole chain rather than keeping the primitive.
+
+   Reduced motion is included deliberately. A static distortion is not motion, but
+   refraction is only legible while the media moves under it — it is a motion
+   effect whose frames happen to be still — and it is the most expensive primitive
+   in the system to composite. Someone asking for less motion is not asking to
+   keep paying for that. */
+[data-density="2"] .glass[data-glass-refract],
+.glass[data-glass-fill="light"][data-glass-refract],
+.glass[data-glass-fill="dark"][data-glass-refract]{-webkit-backdrop-filter:none;backdrop-filter:none}
+@media (prefers-reduced-transparency:reduce),(prefers-contrast:more),(prefers-reduced-motion:reduce){
+[data-refraction="on"] .glass[data-glass-refract]{-webkit-backdrop-filter:none;backdrop-filter:none}
+}

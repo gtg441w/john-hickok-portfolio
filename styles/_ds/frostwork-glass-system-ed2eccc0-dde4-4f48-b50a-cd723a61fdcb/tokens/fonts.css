@@ -1,0 +1,22 @@
+/* Webfont loading — self-hosted, three files.
+   Outfit ........... variable wght 100–900; the system uses 700 only (display).
+   Open Sans ........ variable wght 300–800, roman + italic. Body/UI at 400, labels at 600.
+   Mono ............. NOT a webfont. --family-mono resolves through --fallback-mono
+                      (ui-monospace → SF Mono → Menlo → Consolas). No third face ships.
+
+   The wdth axis on Open Sans is pinned to 100 by declaring font-stretch:100% on the
+   face: the condensed and semi-condensed widths Google ships are not part of this
+   system, and an unpinned axis is a width the page can drift into by accident.
+
+   Paths are relative to THIS file (tokens/). To change a typeface: replace the file
+   in assets/fonts/, edit the @font-face below AND the matching --family-* line in
+   tokens/typography.css. Nothing else in the system names a typeface.
+
+   Licenses: both families are SIL OFL 1.1. Full text ships beside the binaries in
+   assets/fonts/*-OFL.txt — self-hosting is covered; keep those files with the fonts. */
+
+@font-face{font-family:"Outfit";src:url("../assets/fonts/Outfit-Variable.ttf") format("truetype-variations");font-weight:100 900;font-style:normal;font-display:swap}
+
+@font-face{font-family:"Open Sans";src:url("../assets/fonts/OpenSans-Variable.ttf") format("truetype-variations");font-weight:300 800;font-stretch:100%;font-style:normal;font-display:swap}
+
+@font-face{font-family:"Open Sans";src:url("../assets/fonts/OpenSans-Italic-Variable.ttf") format("truetype-variations");font-weight:300 800;font-stretch:100%;font-style:italic;font-display:swap}

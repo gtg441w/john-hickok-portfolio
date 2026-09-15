@@ -1,0 +1,184 @@
+/* ── Tier 3 · IDENTITY, and the shadcn contract ────────────────────────────────
+   Two jobs in one file, because they are the same mechanism.
+
+   1. BRAND IS AN OPTIONAL SLOT.
+      Every identity token is `var(--brand-x, <neutral fallback>)`. Define nothing
+      and the system is complete, accessible and excellent in pure neutral — a
+      primary action still reads as primary, because emphasis is material (opaque
+      ink fill, lifted, 600) and never hue. Define --brand-primary at any scope and
+      it propagates everywhere at once, deliberately, with no component edits.
+
+      This is the Airbnb pattern: a neutral solid primary AND a branded primary as
+      siblings, not replacements. `emphasis="primary"` stays the neutral solid;
+      `tone="brand"` opts into the accent. Nothing built so far changes.
+
+      The rule that keeps it honest: HUE MAY ONLY APPEAR ON AN ELEMENT THAT
+      RESPONDS TO INPUT OR REPORTS STATUS. A card does not get accent. A heading
+      does not get accent. A button does.
+
+   2. THE SHADCN VARIABLE CONTRACT.
+      shadcn/ui components contain no colour — each reads a fixed set of variable
+      names. Whoever fills those slots controls every component in the library,
+      forever, with no per-component work. So they are filled here as `var()`
+      aliases onto Frostwork tokens: ONE direction of dependency, always. A slot
+      never holds a literal value.
+
+      Do NOT copy shadcn's default globals.css over this. That produces two grey
+      ramps with no relationship, which is how a design system becomes a shell
+      wrapped around stock component interiors.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root{
+/* ── the identity slots · undefined by default ───────────────────────────────
+   Uncomment to brand the system. Values must be OKLCH so they stay predictable
+   when mixed against a sampled stage tone. Keep chroma modest: a primary is an
+   action, not a decoration.
+     --brand-primary:oklch(50% 0.10 196);
+     --brand-primary-fg:#ffffff;
+     --brand-secondary:oklch(55% 0.19 292);
+     --brand-secondary-fg:#ffffff;
+   The focus ring is deliberately NOT brandable — see tokens/semantic.css. A
+   brand-coloured ring goes invisible exactly when the stage agrees with the brand,
+   which is an accessibility failure rather than a taste question. */
+
+--primary:var(--brand-primary,var(--n-8));
+--primary-fg:var(--brand-primary-fg,var(--n-0));
+--secondary:var(--brand-secondary,var(--n-2));
+--secondary-fg:var(--brand-secondary-fg,var(--n-8));
+
+/* ── shadcn slots ────────────────────────────────────────────────────────────
+   Every one an alias. Names are shadcn's, values are Frostwork's. */
+--muted:var(--n-2);
+--accent:var(--n-2);
+--destructive:var(--danger);
+--destructive-foreground:var(--danger-fg);
+--ring:var(--focus-inner);
+--radius:var(--radius-md);
+
+/* shadcn has no success/warning slots; components that need them read ours */
+}
+
+/* ── slots derived from a CHROME-SCOPED token ────────────────────────────────
+   `var()` substitutes at the scope that DECLARES the custom property, not where
+   it is read. So `--foreground:var(--text-body)` written once at :root locks to
+   the light-chrome value and inherits into `.dark` unchanged — the shadcn slots
+   silently stop tracking chrome, which is how an Input ended up with #1a1a1a ink
+   on a #171717 dark content plane.
+
+   Rule (fourth recurrence of this shape): any token derived from a scoped token
+   must be re-declared in every scope that redefines its source. Both chrome
+   scopes are listed explicitly below — never one of them. */
+:root,.light,.ui-light{
+--background:var(--surface-page);
+--foreground:var(--text-body);
+--card:var(--surface-card);
+--card-foreground:var(--text-body);
+--popover:var(--surface-card);
+--popover-foreground:var(--text-body);
+--muted-foreground:var(--text-muted);
+--accent-foreground:var(--text-strong);
+--border:var(--line-hairline);
+--input:var(--line-hairline);
+}
+
+/* Dark chrome. `.dark` is canonical — every shadcn snippet, next-themes, and
+   Tailwind's own dark: variant assume it. `.ui-dark` remains a working alias so
+   existing markup keeps resolving, but new work uses .dark.
+
+   CRITICAL: .dark is a USER PREFERENCE about chrome. data-stage-luma is a
+   PUBLISHED FACT about media. They look similar and are not interchangeable — a
+   dark stage can appear inside light chrome and must still get light text.
+   Conflating them breaks the three-layer contract. */
+.dark,.ui-dark{
+--primary:var(--brand-primary,var(--n-1));
+--primary-fg:var(--brand-primary-fg,var(--n-9));
+--secondary:var(--brand-secondary,var(--n-7));
+--secondary-fg:var(--brand-secondary-fg,var(--n-1));
+--background:var(--surface-page);
+--foreground:var(--text-body);
+--card:var(--n-8);
+--card-foreground:var(--text-body);
+--popover:var(--n-8);
+--popover-foreground:var(--text-body);
+--muted:var(--n-7);
+--muted-foreground:var(--text-muted);
+--accent:var(--n-7);
+--accent-foreground:var(--n-1);
+--border:var(--line-hairline);
+--input:var(--line-hairline);
+--ring:var(--focus-outer);
+}
+
+/* ── The brand tone, when it exists ──────────────────────────────────────────
+   `tone="brand"` on an interactive surface. Falls back to the neutral primary, so
+   the attribute is safe to author before any brand colour is chosen — it simply
+   looks identical to emphasis="primary" until --brand-primary is defined.
+   Structural rules still apply: box-shadow is never replaced, only the fill and
+   text change, and the specular stack is untouched. */
+/* The doubled attribute is deliberate. `[data-tone]` and `[data-emphasis]` rules
+   have identical specificity (0,2,0), so plain source order would decide which wins
+   — and tone must beat ALL THREE emphasis rungs regardless of how a consumer orders
+   their imports. Repeating the selector raises it to (0,3,0) without requiring
+   data-emphasis to be present, so the rule holds even when brand.css is imported
+   before glass.css. This file is also imported after glass.css in styles.css, which
+   is the semantically correct order: identity is Tier 3, layering on the material. */
+.glass[data-tone="brand"][data-tone="brand"]{
+background-image:none;
+background-color:var(--primary);
+color:var(--primary-fg);
+border-color:transparent;
+-webkit-backdrop-filter:none;
+backdrop-filter:none;
+}
+.glass[data-tone="brand"] .mono{color:inherit;opacity:.72}
+
+/* ── Accent ON GLASS · the closed question ───────────────────────────────────
+   ui_kits/accent-lab/ put five readings side by side: none, text, edges,
+   text+edges, tinted fill. Three are refused on structural grounds, not taste.
+
+   TINTED FILL is refused because the fill is the material. Mixing hue into it at
+   any percentage means the surface is no longer sampling the media — it is
+   painting over it, and the whole three-layer contract stops describing what the
+   user sees. Layer 2 consumes and decides nothing; a tint is a decision.
+
+   EDGE HUE is refused because the specular stack is the material too (L2-specular).
+   The four inset layers describe light raking across a physical edge; recolouring
+   them to carry identity makes brand read as a lighting bug. And it fails F-hue on
+   its own terms: an edge does not respond to input and does not report status.
+
+   TEXT is permitted, because type on glass IS the functional layer (L3-plane) —
+   labels, actions and active state are exactly the things that respond and report.
+
+   So accent enters as INK, in two doses:
+     concentrated   tone="brand" — one solid accent fill, the single primary action
+     dilute         --glass-accent-ink — accent type on interactive/reporting labels
+
+   The dilute dose cannot be the raw brand hex. The lab's warm-media column showed
+   why: a mid-lightness accent over saturated warm photography loses the contrast
+   the neutral roles are guaranteed. So the ink is DERIVED the same way --glass-text
+   is (L3-role): the accent's hue is mixed toward whatever ink the stage has already
+   published, so lightness follows the media and only the chroma is identity. Hue
+   survives; contrast is not renegotiated per surface.
+
+   Undefined brand collapses to the role itself: the mix becomes role-with-role,
+   which is the role exactly, so a system with no palette renders this token
+   achromatic rather than grey-tinted.
+
+   NOTE ON SHAPE — this is T-scope-parity wearing a different hat. An earlier pass
+   wrote the chain as an intermediate `--glass-accent:var(--brand-primary,…)` at
+   :root and mixed THAT below. It froze: var() substitutes where a custom property
+   is DECLARED, so --brand-primary was looked up at :root (undefined, always) and
+   the brand hex could never enter the mix from any lower scope. The full fallback
+   expression therefore has to appear inside each declaration that consumes it, in
+   the scope that consumes it — verbose on purpose, and the only shape that lets a
+   brand defined on a section reach the ink inside it. */
+:root{--glass-accent-ink:var(--glass-text)}
+[data-stage-luma="light"]{--glass-accent-ink:color-mix(in oklab,var(--brand-primary,#141414) 60%,#141414)}
+[data-stage-luma="dark"]{--glass-accent-ink:color-mix(in oklab,var(--brand-primary,#f4f4f4) 60%,#f4f4f4)}
+/* the opaque path, per L2-opaque-path: once the fill is chrome rather than media,
+   the ink has to be re-derived from chrome or it answers for an invisible surface. */
+[data-density="2"],[data-glass-fill="light"],[data-glass-fill="dark"]{--glass-accent-ink:color-mix(in oklab,var(--brand-primary,var(--glass-text-override)) 60%,var(--glass-text-override))}
+@media (prefers-reduced-transparency:reduce){.glass{--glass-accent-ink:color-mix(in oklab,var(--brand-primary,var(--glass-text-override)) 60%,var(--glass-text-override))}}
+/* forced-contrast mode drops identity entirely — hue is never the thing keeping
+   text legible, so under prefers-contrast:more the ink returns to the neutral role. */
+@media (prefers-contrast:more){.glass{--glass-accent-ink:var(--glass-text-override)}}
+.glass-accent{color:var(--glass-accent-ink)}

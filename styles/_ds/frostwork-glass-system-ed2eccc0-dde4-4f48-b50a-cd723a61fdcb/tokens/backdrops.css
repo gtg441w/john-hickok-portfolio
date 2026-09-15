@@ -1,0 +1,49 @@
+/* Backdrop stand-ins — and Layer 1 of the glass contract. Each mood publishes the
+   facts the surfaces above it consume: --stage-tone-rgb (the media's sampled color),
+   data-stage-luma (set in markup from that sample) and a default density. Real imagery
+   drops in via --backdrop-image; its tone comes from the pipeline (or the CMS image
+   palette) rather than from this file. */
+.backdrop{position:relative;overflow:hidden;background-color:var(--n-8);background-size:cover;background-position:center}
+.backdrop--warm{background-color:#c98b52;background-image:radial-gradient(120% 90% at 18% 8%,#ffe2b8 0%,rgba(255,226,184,0) 55%),radial-gradient(90% 80% at 82% 22%,#f0a45e 0%,rgba(240,164,94,0) 60%),linear-gradient(160deg,#e8b177 0%,#a85f38 58%,#6d3a22 100%)}
+.backdrop--cool{background-color:#1d2a33;background-image:radial-gradient(110% 80% at 72% 12%,#5c7c8f 0%,rgba(92,124,143,0) 62%),radial-gradient(80% 70% at 12% 78%,#2a3d4a 0%,rgba(42,61,74,0) 70%),linear-gradient(190deg,#31465420 0%,#101a20 100%)}
+.backdrop--busy{background-color:#3a3a3a;background-image:repeating-linear-gradient(58deg,rgba(255,255,255,.9) 0 7px,rgba(0,0,0,.92) 7px 15px,rgba(200,120,60,.85) 15px 22px,rgba(255,255,255,.15) 22px 34px),radial-gradient(70% 60% at 30% 30%,rgba(255,255,255,.5),rgba(0,0,0,.6))}
+.backdrop--plain{background-color:#111111;background-image:linear-gradient(180deg,#191919 0%,#0b0b0b 100%)}
+.backdrop--image{background-image:var(--backdrop-image)}
+
+/* Layer 1 · the published facts, per mood. Attribute-scoped so they register as tokens:
+   the class paints the media, data-mood states what that media IS. Busy media is
+   high-contrast by definition, so it publishes density 1 — the one mood where the system
+   protects text without being asked. */
+[data-mood="warm"]{--stage-tone-rgb:226,158,72 /* @kind color */}
+[data-mood="cool"]{--stage-tone-rgb:74,116,140 /* @kind color */}
+/* A mood publishes ONE fact: the media's sampled tone. It must never set a Layer-2
+   surface token — backdrops.css imports after glass.css, so an equal-specificity
+   mood scope silently shadows the density ladder and density stops being
+   authoritative. `busy` previously set --glass-density-alpha and
+   --stage-transmission here, which overrode [data-density="1"] for the only mood
+   that defaults to density 1. Density is published via data-density (see
+   BackdropStage); the ladder in glass.css derives fill, blur and alpha from it. */
+[data-mood="busy"]{--stage-tone-rgb:150,132,116 /* @kind color */}
+[data-mood="plain"]{--stage-tone-rgb:26,26,26 /* @kind color */}
+[data-mood="orbs-warm"]{--stage-tone-rgb:226,158,72 /* @kind color */}
+[data-mood="orbs-cool"]{--stage-tone-rgb:66,110,205 /* @kind color */}
+
+/* Layer 1 · REAL PHOTOGRAPHY. A photograph is not a mood, so it publishes its own
+   tone here and its own luma/density in components/surfaces/media-registry.js —
+   same split as the moods above (CSS owns tone, JS owns luma and density), so this
+   is not a second mechanism. `data-stage-media` is stamped by publishStageFacts()
+   for React stages and written by hand in static markup; either way the tone below
+   is the mean RGB actually measured off the file, not a guess at its mood.
+   The mood class still paints underneath, so a photograph that fails to load
+   leaves a gradient of roughly the right colour rather than a void. */
+[data-stage-media="warm-citrus"]{--stage-tone-rgb:227,165,98 /* @kind color */}
+[data-stage-media="cool-mangosteen"]{--stage-tone-rgb:64,54,61 /* @kind color */}
+[data-stage-media="busy-taps"]{--stage-tone-rgb:101,94,87 /* @kind color */}
+[data-stage-media="plain-pour"]{--stage-tone-rgb:4,4,4 /* @kind color */}
+[data-stage-media="light-ice"]{--stage-tone-rgb:213,220,193 /* @kind color */}
+[data-stage-media="split-spectrum"]{--stage-tone-rgb:50,15,92 /* @kind color */}
+[data-stage-media="edge-plate"]{--stage-tone-rgb:193,186,180 /* @kind color */}
+[data-stage-media="sat-strawberry"]{--stage-tone-rgb:175,46,46 /* @kind color */}
+[data-stage-media="motion-smoke"]{--stage-tone-rgb:42,52,65 /* @kind color */}
+[data-stage-media="motion-fireworks"]{--stage-tone-rgb:68,51,37 /* @kind color */}
+[data-stage-media="motion-watch"]{--stage-tone-rgb:115,126,122 /* @kind color */}

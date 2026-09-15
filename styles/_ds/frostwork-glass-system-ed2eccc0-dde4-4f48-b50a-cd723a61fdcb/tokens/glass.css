@@ -1,0 +1,730 @@
+/* ── The glass recipe · v0.2 ───────────────────────────────────────────────────
+   THREE LAYERS, THREE CONTRACTS. A surface never decides anything.
+
+   LAYER 1 · STAGE   owns the media and publishes its facts, once, in markup:
+                     --stage-tone-rgb   the media's actual sampled color
+                     data-stage-luma    "light" | "dark"  (derived from that sample)
+                     data-density       0 transmit · 1 protected · 2 guaranteed
+   LAYER 2 · SURFACE consumes and decides NOTHING. Its fill is an achromatic base
+                     plus a wash of the media's real color — not a saturate() guess.
+                     Blur is the only filter, so it can be tiered away on weak
+                     devices without taking the color identity with it.
+   LAYER 3 · TEXT    guaranteed, not negotiated: the role is deterministic because
+                     the stage published luminance. The halo applies only below the
+                     16px optical floor.
+
+   One dial for depth: --glass-depth (unitless). Blur is that number in px and alpha
+   is derived from it, so the two can never disagree. Contrast is computed where the
+   media is chosen — a build step, or the palette a CMS already returns for an image
+   — never sampled on the client.
+
+   A stage that has NOT published a tone falls back to saturate(): it still works,
+   it is just approximate and cannot be tiered. Publishing tone turns the guess off.
+   ─────────────────────────────────────────────────────────────────────────────── */
+:root{
+/* depth — one dial. Blur is this number in px; alpha is derived from it.
+
+   CARD AND MODAL CONVERGED AT 72. Chosen by eye from four real panes
+   (ui_kits/glass-lab/ab/blur-*.html) at 28 / 40 / 56 / 72 on one photograph: the
+   heavier the pane, the more it read as glass rather than as a tinted box, and 72
+   won outright. That collides with the modal rung, and the resolution was to let
+   the collision stand rather than invent a rung above it.
+
+   So depth no longer distinguishes a card from a modal. What does: the modal's
+   radius is unchanged, and it sits over a stage-wide scrim that a card never gets.
+   A modal was always transient and full-screen; a card never is. The hierarchy
+   moved from "how blurred" to "what is underneath it", which is a better encoding
+   anyway — depth was carrying two jobs and only one of them was legible.
+
+   And it is not paid for in legibility: the registry measures the same verdicts at
+   28 and 72, because the local extremes are already gone by 28. The heavier pane is
+   an aesthetic purchase, made with the evidence in hand that it buys nothing else.
+   It IS paid for in fill alpha, which is derived from depth: .10 + 72×.0018 = .23
+   light, .31 dark. A 72-blur card is a denser card, by construction. */
+--glass-depth-button:10 /* @kind other */;
+--glass-depth-nav:18 /* @kind other */;
+--glass-depth-card:72 /* @kind other */;
+--glass-depth-modal:72 /* @kind other */;
+
+/* ── v0.3 · ONE THICKNESS, ONE BLUR ─────────────────────────────────
+   Blur and tint are decoupled, and both are fixed.
+
+   BLUR NEVER CONTRIBUTED CONTRAST. A low-pass filter does not change the mean
+   brightness of what it blurs — blur a bright field and you get a bright smear, and
+   text fails on the smear exactly as it failed on the field. Blur removes distracting
+   DETAIL, which is worth having and is the reason it stays on, but it was never the
+   legibility mechanism. So it has no reason to vary: 32px, every surface, both modes.
+
+   Because it is decoupled, THE RADIUS IS FREE. No contrast ratio in this file depends
+   on it, so it can be retuned at any time without re-running a single solve. The
+   window is set by the background's feature size, not by legibility: below ~16px the
+   mesh dots (~12px) survive as specks behind text; past ~48px the cells (~100px apart)
+   dissolve and the pane transmits a flat field. 32 sits mid-window — chosen by eye off
+   the comparison strip against a photograph, where 16 left the fruit's seed texture
+   competing with the type and 40 flattened it to a wash.
+
+   CONTRAST COMES ENTIRELY FROM TINT OPACITY, and one value serves both modes. It is
+   solved, not judged. A translucent surface's luminance is a blend:
+
+       composite = α · (fill luminance) + (1 − α) · (background luminance)
+
+   Take the worst background the mode is allowed to face, require the MUTED role —
+   always the binding one — to clear 4.5:1, and solve for α. Both modes land at .50:
+
+     light  fill L95% C≤.07 · muted #3a3a3a (lum .0425)
+            worst resolved fill luminance .780 (saturated red; blue reaches .840)
+            composite = .390 + .5·bg, so the FILL ALONE clears the bar at bg = 0
+            → 4.76:1 over pure black, rising to 9.4:1 over white. UNCONDITIONAL.
+
+     dark   fill L24% (lum .0145) · muted oklch 85% (worst resolved lum .618)
+            composite = .0073 + .5·bg, needs composite ≤ .0984
+            → background must stay below ~.18 luminance.
+
+   THE CONTRACT IS ONE-SIDED, and the first draft of this comment got it wrong in
+   both directions — it claimed light needed bg ≥ .35 and dark ≤ .15. Light needs
+   nothing: half of an L90% fill is already above the threshold, so no background can
+   drag it under. Dark is the only constrained mode, because its fill contributes
+   almost nothing (lum .0138) and half of a bright background swamps it outright.
+
+   The asymmetry is not a defect to be evened out. Surviving a WHITE background in
+   dark chrome would take α ≈ .96 — an opaque plate — so the constraint is physics,
+   and the honest response is to state it rather than to spend every mode's
+   transparency paying for one mode's worst case.
+
+   50% tint means 50% of the ambient colour and tone still comes through, in BOTH
+   modes. Light mode is frosted glass, not an opaque plate.
+
+   WHAT THIS REPLACES. v0.2 welded blur and alpha to one --glass-depth dial, which
+   left the system with two settings — thin, or solid — and no way to reach the value
+   in between. Light chrome over any real background needs that in-between value, so
+   v0.2 could only refuse it. The depth ladder, the density enum, both legaliseStage()
+   refusals and the per-image measurement registry were all downstream of the missing
+   dial. Retired together.
+
+   THE ONE THING TAKEN ON IN EXCHANGE is a contract instead of a measurement, and it
+   binds one mode only: a DARK-chrome stage needs a background below ~.18 relative
+   luminance. Light chrome is unconstrained. One check, not a measurement pipeline —
+   and where a background cannot honour it, the opaque paths (prefers-reduced-
+   transparency, prefers-contrast, data-glass-fill) remain as the far end of the dial.
+
+   Worked against the shipped registry, measured THROUGH the pane: plain-pour (worst
+   bright window .162 → 4.83:1) is the only photograph that clears the dark contract.
+   cool-mangosteen (.46) and sat-strawberry (.43) do not — both carry a specular patch
+   that survives the blur. All three are legal under LIGHT chrome, since nothing is.
+
+   Every figure in this comment was measured off the rendered page, not derived. Three
+   of them were wrong when they were derived: the light fill's luminance (chroma
+   clipping), the dark ceiling at .168 (ink solved against a rounder number than the
+   contract stated), and again at .19. Solve to get close, then measure to publish. */
+--glass-thickness:.50 /* @kind other */;
+--glass-blur-fixed:32px;
+
+--glass-base-alpha:.10 /* @kind other */;
+--glass-alpha-per-depth:.0018 /* @kind other */;
+--glass-density-alpha:0 /* @kind other */;
+
+/* tone transmission — 0 until a stage publishes a tone, then the wash carries the hue */
+--glass-tone-rgb:128,128,128 /* @kind color */;
+--glass-tone-alpha:0 /* @kind other */;
+
+/* fallback transmission for stages that publish no tone */
+--glass-saturate:1.45 /* @kind other */;
+--glass-brightness:1.06 /* @kind other */;
+
+--glass-radius-button:var(--radius-pill);
+--glass-radius-nav:var(--radius-md);
+/* Radius is NOT derived from depth. It used to be — "a heavier blur always gets a
+   larger corner" — and that rule is retired: when card and modal converged at depth
+   72 it forced them onto one corner as a side effect, which is a shape decision made
+   by an optical one. A corner radius does not participate in any glass calculation
+   (blur and alpha come from --glass-depth, fill from the tone wash), so coupling it
+   to them bought nothing and propagated collisions. Each surface takes the corner its
+   own size and role call for, on the same 8px scale as everything else. */
+--glass-radius-card:var(--radius-lg);
+--glass-radius-modal:var(--radius-xl);
+
+--glass-tint-light:255,255,255;
+--glass-tint-dark:10,10,10;
+
+/* The guaranteed fill — density 2 and prefers-reduced-transparency take this outright.
+   OPAQUE, deliberately. "Guaranteed, not derived" is only true if the surface
+   luminance does not depend on the media behind it: at 82% these were still ~50
+   luminance steps apart over dark versus light media, so every value calibrated
+   against them drifted, and the one state that must never fail could. The 6% tone
+   wash above still ties the surface to its stage — that is a small, bounded shift
+   rather than an unbounded one. */
+--glass-fill-override-light:#f7f7f7;
+--glass-fill-override-dark:#0e0e0e;
+
+/* ── The hued guaranteed fill ──────────────────────────────────────────────────
+   The flat overrides above are the FALLBACK. The shipped fill borrows the stage's
+   hue at an AUTHORED lightness, which is the whole trick: contrast is set by the
+   pinned L, so chroma is free and cannot move luminance no matter how saturated
+   the media gets. That is what lets the guaranteed state be colourful and provable
+   at the same time — the two things the 6% wash could never be at once.
+
+   Settled by the A/B sheet (ui_kits/glass-lab/ab-fill.html), five pairs, one variable
+   each:
+     1 · hue        the FRAME AVERAGE, not the most chromatic region. The vivid-region
+                    hue reads as a colour someone chose; the average reads as the room.
+     2 · chroma     a COMMITTED ceiling, well inside the sRGB gamut edge. At the edge a
+                    high-L fill clips and reads GREYER, not more colourful — which is
+                    the same complaint the heavy wash drew, from the opposite cause.
+     3 · lightness  KEPT HIGH: 90% light / 24% dark. Amended after the fact. The first
+                    pass spent contrast headroom on chroma (78%/30%) on the argument
+                    that AAA nobody asked for is waste. Seen isolated, the two were
+                    nearly indistinguishable in colour and the lower L simply looked
+                    duller, so the trade bought nothing and cost the headroom. Spending
+                    is only justified when the thing bought is visible.
+     4 · muted      hue-matched to the fill, at the lightness of the grey it replaces —
+                    ratio unchanged, only the hue differs. Already shipping.
+     5 · density 0  UNCHANGED. The 28% alpha wash stays; the translucent path was not
+                    the thing that looked colourless.
+
+   Only ever applied where a stage actually PUBLISHED a tone. An unpublished tone is
+   the achromatic 128,128,128 default, whose hue channel is powerless — relative
+   colour syntax resolves that to 0deg, which would render a red card. The selector
+   gate below is a correctness requirement, not a nicety.
+
+   NOTE, and this cost a render: the oklch() is composed at every POINT OF USE, never
+   pre-assembled into a token here. A custom property has its var()s substituted on
+   the element where it is DECLARED — so a --glass-fill-hued built in :root would
+   resolve --stage-tone-rgb against :root, find the achromatic fallback, and paint
+   every surface in the system the same pink. Only L and C travel as tokens; the hue
+   must be read on the surface that inherits it.
+
+   CHROMA IS PROPORTIONAL, NOT FIXED. The fill-audit card caught this: at a fixed
+   chroma, plain-pour (rgb 4,4,4) resolved to hue 90° and painted a confident yellow
+   card behind a near-black photograph. The hue angle of an almost-achromatic colour
+   is arithmetic noise, and a fixed chroma amplifies that noise into a decision. So
+   the fill takes the tone's OWN chroma times a gain, capped at the gamut-edge
+   ceiling: a saturated photograph reaches the ceiling, a grey one stays grey, and a
+   meaningless hue stays invisible because there is no chroma to carry it. */
+--glass-fill-l:95%;
+--glass-fill-gain:1.4 /* @kind other */;
+--glass-fill-c:.07 /* @kind other */;
+/* ── Concentric radii ─────────────────────────────────────────────────────────
+   Apple: "the shape of the hardware informs the curvature, size, and shape of
+   nested interface elements." A child's radius is its parent's minus the gap
+   between them, so the two curves stay concentric instead of drifting. Set
+   --radius-parent on the container; nested surfaces derive from it.
+   Never hand-pick a radius for a nested surface. */
+--radius-parent:var(--radius-lg);
+--radius-concentric:max(var(--radius-sm),calc(var(--radius-parent) - var(--space-3)));
+
+/* ── Scroll edge effect ───────────────────────────────────────────────────────
+   Apple's mechanism for bar legibility, and a better one than raising fill alpha:
+   rather than thickening the glass until it survives arbitrary media, obscure the
+   media locally where it passes under the bar. The glass stays thin and the
+   contrast comes from the edge. Applied by .glass-scroll-edge, below. */
+--scroll-edge-size:44px;
+--scroll-edge-strength:.55 /* @kind other */;
+/* no-op focus ring by default; tokens/semantic.css swaps it in on :focus-visible.
+   It leads every box-shadow stack so focus can be added WITHOUT replacing the
+   four-layer specular recipe. */
+--glass-focus-ring:0 0 0 0 transparent /* @kind shadow */;
+}
+
+:root,.light,.ui-light{
+--glass-tint:var(--glass-tint-light);
+--glass-base-alpha:.10 /* @kind other */;
+--glass-saturate:1.45 /* @kind other */;
+--glass-brightness:1.08 /* @kind other */;
+--glass-edge:rgba(255,255,255,.55);
+--glass-edge-inner:rgba(255,255,255,.85);
+--glass-edge-under:rgba(255,255,255,.28);
+--glass-glow:rgba(255,255,255,.18);
+--glass-glow-size:24px;
+--glass-shadow:0 16px 48px -24px rgba(10,10,10,.55);
+--glass-halo:0 1px 2px rgba(255,255,255,.5);
+--glass-fill-override:var(--glass-fill-override-light);
+/* L 90% → 95%, C .10 → .07. The v0.3 solve assumed the ACHROMATIC luminance of an
+   L90% fill (.730), but the fill is hued: at the .10 chroma cap on a saturated stage
+   the red channel clips and real luminance falls to .646, dropping muted text to
+   4.03:1 over a dark patch — below the floor the solve had just certified. Worst case
+   across all hues is now .780 (red; blue reaches .840), so the composite clears AA
+   over a pure-black background at 4.76:1.
+
+   The lesson is the one this system keeps relearning: a luminance solved from a token
+   has to be solved from the token's WORST resolved value, not its nominal one. Pinning
+   L is only a guarantee if chroma cannot move the result, and at the gamut edge it
+   can — clipping is a luminance loss the oklch triple does not show you. */
+--glass-fill-l:95%;
+--glass-fill-c:.07 /* @kind other */;
+/* the muted tier hue-matches the fill rather than stepping down into neutral grey:
+   same lightness as the grey it replaces, so the ratio is unchanged and only the
+   hue differs. A neutral grey on a hued fill reads as dirt, not as a tier. */
+--glass-muted-l:36%;
+--glass-muted-c:.085 /* @kind other */;
+--glass-solid:rgba(18,18,18,.94);
+--glass-solid-text:#fafafa;
+--glass-edge-override:rgba(255,255,255,.7);
+--glass-text-override:#141414;
+--glass-text-override-muted:#3a3a3a;
+/* v0.3: ink follows CHROME, not stage luma. At α .50 the fill dominates the
+   composite, so the surface's luminance is known from the mode alone — which is what
+   dissolves v0.2's "chrome opposes stage luma" mid-tone failure. */
+--glass-text:#141414;
+--glass-text-muted:#3a3a3a;
+}
+
+.dark,.ui-dark{
+--glass-tint:var(--glass-tint-dark);
+--glass-base-alpha:.18 /* @kind other */;
+--glass-saturate:1.25 /* @kind other */;
+--glass-brightness:.82 /* @kind other */;
+--glass-edge:rgba(255,255,255,.16);
+--glass-edge-inner:rgba(255,255,255,.34);
+--glass-edge-under:rgba(255,255,255,.08);
+--glass-glow:rgba(255,255,255,.06);
+--glass-glow-size:32px;
+--glass-shadow:0 24px 64px -24px rgba(0,0,0,.8);
+--glass-halo:0 1px 2px rgba(0,0,0,.55);
+--glass-fill-override:var(--glass-fill-override-dark);
+--glass-fill-l:24%;
+--glass-fill-c:.11 /* @kind other */;
+/* v0.3: 70% → 85%, the hued twin of the #b8b8b8 → #d0d0d0 ink change. The stage
+   republishes --glass-text-muted as oklch at this lightness, so leaving it at 70%
+   would have quietly reinstated the failing value on every toned stage while the
+   flat fallback passed. Both halves of a role have to move together. */
+--glass-muted-l:85%;
+--glass-muted-c:.06 /* @kind other */;
+--glass-solid:rgba(246,246,246,.95);
+--glass-solid-text:#0f0f0f;
+--glass-edge-override:rgba(255,255,255,.12);
+--glass-text-override:#f2f2f2;
+/* #b8b8b8 → #d0d0d0. The v0.3 solve moved this twice. First to #c9c9c9, which cleared
+   AA at a background of .15 but only reached 4.44:1 at the .168 ceiling the contract
+   actually stated — the ink was solved against a rounder number than the one written
+   down. #d0d0d0 clears 4.85:1 there and pushes the true ceiling to ~.19, which gives
+   plain-pour (worst bright window .162, the only dark-legal still) real headroom
+   instead of two hundredths. */
+--glass-text-override-muted:#d0d0d0;
+--glass-text:#f2f2f2;
+--glass-text-muted:#d0d0d0;
+}
+
+/* ── Layer 1 · stage ─────────────────────────────────────────────────────────── */
+/* .stage and .backdrop both publish facts. Publishing a tone turns the saturate()
+   fallback off — the wash is the real color, so amplification is no longer needed. */
+.stage,.backdrop{position:relative;overflow:hidden;isolation:isolate}
+
+/* Publishing a tone — via data-stage-tone, or one of the named media moods — turns the
+   saturate() fallback off: the wash is the real color, so amplification is redundant. */
+[data-stage-tone],[data-mood]{
+--glass-tone-rgb:var(--stage-tone-rgb,128,128,128) /* @kind color */;
+--glass-tone-alpha:var(--stage-transmission,.28);
+--glass-saturate:1.02 /* @kind other */;
+}
+
+/* v0.3: the stage no longer sets the text role — chrome does (see the .light/.dark
+   blocks above). Stage luma still picks the HALO direction, because the halo is a
+   micro-type treatment aimed at the media showing through, not at the fill. */
+[data-stage-luma="light"]{--glass-halo:0 1px 2px rgba(255,255,255,.5)}
+[data-stage-luma="dark"]{--glass-halo:0 1px 2px rgba(0,0,0,.55)}
+
+/* ── When the fill stops being translucent ─────────────────────────────────────
+   --glass-text is derived from the MEDIA's luminance, which is right for as long as
+   the media is what the text sits on. The moment the fill goes opaque — density 2, a
+   per-surface fill override, reduced transparency — the surface luminance comes from
+   CHROME instead, and the media-derived role is answering for something no longer
+   visible. Left alone it produces the exact inversion the harness caught: dark ink
+   on a dark guaranteed fill over a light-luma stage.
+
+   So the ROLE TOKENS THEMSELVES are re-derived here, not just the .glass color
+   property. Authors write color: var(--glass-text) on labels inside a pane, and an
+   inline value beats any class rule — so a fix applied only to .glass would be
+   defeated by ordinary authoring. The token has to mean "the correct text colour for
+   this surface", under every fill path.
+
+   This is the same failure class as the semantic -on-light/-on-dark pair: any token
+   derived from stage luma needs a counterpart for the opaque path. */
+[data-density="2"],[data-glass-fill="light"],[data-glass-fill="dark"]{
+--glass-text:var(--glass-text-override);
+--glass-text-muted:var(--glass-text-override-muted);
+}
+/* a per-surface override names its own luminance, so it does not follow chrome */
+[data-glass-fill="light"]{--glass-text-override:#141414;--glass-text-override-muted:#3a3a3a}
+[data-glass-fill="dark"]{--glass-text-override:#f2f2f2;--glass-text-override-muted:#b8b8b8}
+@media (prefers-reduced-transparency:reduce){
+.glass{--glass-text:var(--glass-text-override);--glass-text-muted:var(--glass-text-override-muted)}
+}
+
+/* density — the legibility ladder, in TWO states.
+   0 transmit · 2 guaranteed (not derived)
+
+   There is no rung 1. "Protected" was a middle state whose entire mechanism was
+   local scrims — opaque boxes sized to each text run, sitting on top of the very
+   material they were protecting. It never earned its place: the harness measured
+   it failing across opposing-chrome and bidirectional media (a stage with both
+   90%-white and 92%-black stops has no single text colour that serves both), so
+   it was neither honest thin glass nor a guarantee. Either the media is calm
+   enough to transmit, or it is not and the surface takes the guaranteed fill.
+
+   The cases that genuinely wanted a middle rung are better served by
+   .glass-scroll-edge below — obscure the media locally where it passes under a
+   bar, per Apple's scroll edge effect, rather than boxing the text.
+
+   BackdropStage corrects a requested density of 1 to 2 and warns. Keeping the
+   numbering rather than renumbering 2→1 is deliberate: a stale `density={1}`
+   then fails loudly, instead of silently meaning something new. */
+/* v0.3: density is retired. Both values resolve to the same single thickness so that
+   existing markup — and BackdropStage, which still publishes a density — keeps
+   rendering, but the attribute no longer changes anything. */
+[data-density="0"],[data-density="2"]{--stage-transmission:.28 /* @kind other */;--glass-density-alpha:0 /* @kind other */}
+
+/* ── Layer 2 · surface ───────────────────────────────────────────────────────── */
+.glass{
+--glass-depth:var(--glass-depth-card);
+/* v0.3: fixed, both of them. Level still sets radius; it no longer sets material. */
+--glass-blur:var(--glass-blur-fixed);
+--glass-alpha:calc(var(--glass-thickness) + var(--glass-emphasis-alpha, 0));
+box-sizing:border-box;
+position:relative;
+color:var(--glass-text);
+/* two stacked fills: the media's real tone over an achromatic base */
+background-image:linear-gradient(0deg,rgba(var(--glass-tone-rgb),var(--glass-tone-alpha)),rgba(var(--glass-tone-rgb),var(--glass-tone-alpha)));
+background-color:rgba(var(--glass-tint),var(--glass-alpha));
+-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+border:var(--hairline) solid var(--glass-edge);
+border-radius:var(--glass-radius-card);
+box-shadow:var(--glass-focus-ring),var(--glass-shadow),inset 0 var(--hairline) 0 var(--glass-edge-inner),inset 0 calc(var(--hairline) * -1) 0 var(--glass-edge-under),inset 0 0 var(--glass-glow-size) var(--glass-glow);
+font-family:var(--font-ui);
+-webkit-font-smoothing:antialiased;
+}
+
+/* level scopes — depth sets blur AND alpha together, so they cannot drift apart */
+[data-glass-level="button"]{--glass-depth:var(--glass-depth-button);border-radius:var(--glass-radius-button)}
+[data-glass-level="nav"]{--glass-depth:var(--glass-depth-nav);border-radius:var(--glass-radius-nav)}
+[data-glass-level="card"]{--glass-depth:var(--glass-depth-card);border-radius:var(--glass-radius-card)}
+[data-glass-level="modal"]{--glass-depth:var(--glass-depth-modal);border-radius:var(--glass-radius-modal)}
+
+/* never nest blur: it doubles the most expensive operation in the system for
+   almost no visual gain. v0.3 adds the reading plane to both sides of this — it is a
+   blurred surface now, so a card inside a plane (or a plane inside a card) is the same
+   double-blur this has always refused. */
+.glass .glass,
+.glass-content .glass,
+.glass .glass-content,
+.glass-content .glass-content{-webkit-backdrop-filter:none;backdrop-filter:none}
+
+/* ── Layer discipline · v0.3 · the reading plane is glass too ───────────────────
+   v0.2 made this an OPAQUE plane, and the reason was measured, not stylistic: the
+   harness found 76 contrast failures across the 24 mood × density × chrome cells and
+   the large majority were body copy and muted text on glass over live media. At α .23
+   a pane could not carry prose, so prose was moved off glass.
+
+   THAT REASON IS GONE. α is .50 now and the ink roles follow the chrome, so a pane
+   clears AA over any background its mode is allowed to face — at every type size,
+   which is the same finding that retired the micro-type halo. Keeping prose off glass
+   because thin glass used to fail it is a rule outliving its measurement, and going
+   fully opaque for the longest, most-read surface on the site is antagonistic to the
+   whole aesthetic: the one screen a visitor actually dwells on would be the one screen
+   with no glass in it.
+
+   So the reading plane takes the SAME single thickness as everything else — no new
+   rung, no reading-specific alpha. The system just deleted a six-rung ladder; adding
+   a rung back for one content type is how that ladder grew the first time.
+
+   WHAT IS GENUINELY DIFFERENT about prose is not contrast, it is VARIANCE. A ratio is
+   measured at one point; a paragraph spans hundreds of vertical pixels, and if the
+   field behind it swings, the composite drifts down the column — every line legible,
+   the page restless. α .50 halves whatever variance the background has, and 32px of
+   blur removes the high-frequency part, but neither flattens a gradient that genuinely
+   travels. That is a MEDIA constraint, and the system already states media constraints:
+   a stage carrying a reading plane wants a low-variance field (a mood gradient, a plain
+   or near-plain still), not a photograph with a bright quarter. Same class of rule as
+   the dark-chrome luminance ceiling, enforced the same way — at the stage.
+
+   Ink: the plane republishes the PAGE roles (--text-body/-strong/-muted) as the GLASS
+   roles. Descendants authored against page tokens then resolve correctly without
+   touching their markup — the page roles were solved against an opaque page surface,
+   so leaving them pointed there would put page ink on a translucent pane and silently
+   reintroduce exactly the failure this amendment claims to have fixed. */
+.glass-content{
+--glass-blur:var(--glass-blur-fixed);
+--glass-alpha:var(--glass-thickness);
+--text-body:var(--glass-text);
+--text-strong:var(--glass-text);
+--text-muted:var(--glass-text-muted);
+box-sizing:border-box;
+position:relative;
+color:var(--glass-text);
+background-image:linear-gradient(0deg,rgba(var(--glass-tone-rgb),var(--glass-tone-alpha)),rgba(var(--glass-tone-rgb),var(--glass-tone-alpha)));
+background-color:rgba(var(--glass-tint),var(--glass-alpha));
+-webkit-backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+backdrop-filter:blur(var(--glass-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
+border:var(--hairline) solid var(--glass-edge);
+border-radius:var(--radius-concentric);
+box-shadow:var(--glass-shadow),inset 0 var(--hairline) 0 var(--glass-edge-inner),inset 0 calc(var(--hairline) * -1) 0 var(--glass-edge-under);
+}
+/* the hued fill and the muted token are stage-scoped, so the plane has to be named in
+   those selectors too or it renders the achromatic base while every card beside it
+   carries the media's hue */
+@supports (color:oklch(from red 50% .1 h)){
+[data-stage-tone] .glass-content,
+[data-mood] .glass-content,
+[data-stage-media] .glass-content{
+background-image:none;
+background-color:oklch(from rgb(var(--stage-tone-rgb,128,128,128)) var(--glass-fill-l) clamp(0,calc(c * var(--glass-fill-gain)),var(--glass-fill-c)) h / var(--glass-alpha));
+}
+}
+
+/* ── Scroll edge effect ───────────────────────────────────────────────────────
+   Legibility for a bar by obscuring the media that passes under it, rather than
+   by thickening the bar. Put this on the SCROLL CONTAINER, not the bar: it is a
+   property of the content passing beneath, which is why Apple's version belongs
+   to the scroll view. The glass stays thin and the contrast comes from the edge. */
+.glass-scroll-edge{position:relative}
+.glass-scroll-edge::before,.glass-scroll-edge::after{content:"";position:absolute;left:0;right:0;height:var(--scroll-edge-size);pointer-events:none;z-index:1}
+.glass-scroll-edge::before{top:0;background:linear-gradient(to bottom,rgba(var(--glass-tint),var(--scroll-edge-strength)),rgba(var(--glass-tint),0))}
+.glass-scroll-edge::after{bottom:0;background:linear-gradient(to top,rgba(var(--glass-tint),var(--scroll-edge-strength)),rgba(var(--glass-tint),0))}
+.glass-scroll-edge[data-edges="top"]::after,.glass-scroll-edge[data-edges="bottom"]::before{display:none}
+
+/* ── Increased contrast ────────────────────────────────────────────────────────
+   Apple: "define a custom color with light and dark variants, and an increased
+   contrast option for each variant." The third variant, which we were missing.
+   Takes the guaranteed fill and the override text roles outright — the same path
+   density 2 uses, since the requirement is identical: stop deriving, guarantee. */
+@media (prefers-contrast:more){
+.glass{background-image:none;background-color:var(--glass-fill-override);color:var(--glass-text-override);border-color:var(--glass-edge-override);-webkit-backdrop-filter:none;backdrop-filter:none}
+.glass-muted{color:var(--glass-text-override-muted)}
+:root{--focus-width-inner:3px;--focus-width-outer:6px;--scroll-edge-strength:.8 /* @kind other */}
+/* increased contrast keeps the hue and buys the ratio from lightness and chroma
+   instead — the fill moves toward its extreme and desaturates part way, the ink goes
+   pure. Identity survives the accessibility preference; only the margin changes. */
+:root,.light,.ui-light{--glass-fill-l:96%;--glass-fill-c:.07 /* @kind other */;--glass-text-override:#000;--glass-muted-l:28%;--glass-muted-c:.06 /* @kind other */}
+.dark,.ui-dark{--glass-fill-l:15%;--glass-fill-c:.05 /* @kind other */;--glass-text-override:#fff;--glass-muted-l:80%;--glass-muted-c:.045 /* @kind other */}
+@supports (color:oklch(from red 50% .1 h)){
+[data-stage-tone],[data-mood],[data-stage-media]{--glass-text-muted:oklch(from rgb(var(--stage-tone-rgb,128,128,128)) var(--glass-muted-l) clamp(0,calc(c * .8),var(--glass-muted-c)) h)}
+[data-stage-tone] .glass,[data-mood] .glass,[data-stage-media] .glass{background-color:oklch(from rgb(var(--stage-tone-rgb,128,128,128)) var(--glass-fill-l) clamp(0,calc(c * var(--glass-fill-gain)),var(--glass-fill-c)) h)}
+[data-stage-tone] .glass-muted,[data-mood] .glass-muted,[data-stage-media] .glass-muted{color:var(--glass-text-muted)}
+}
+}
+
+/* Layer 3 · text ────────────────────────────────────────────────────────────── */
+.glass-muted{color:var(--glass-text-muted)}
+/* .glass-micro is now a NO-OP marker. It carried text-shadow:var(--glass-halo) — a
+   1px white or black halo under type below the 16px optical floor — because thin v0.2
+   glass could not guarantee contrast for micro-type, so the content was rescued at
+   Layer 3 instead. v0.3 solves contrast at Layer 2 for every size, which makes the
+   halo both redundant and a layering violation: it put a legibility fix on the text
+   when the surface owns legibility. It also split one card's type into two visual
+   treatments — micro labels haloed, body copy not — which read as a bug.
+
+   Kept as an empty selector rather than deleted: authored markup across the system
+   uses the class, and it still names "type below the optical floor" for anything that
+   wants to target it. --glass-halo stays declared for the same reason. */
+.glass-micro{}
+
+/* .glass-scrim-text is RETIRED. It was the local box behind a text run at
+   density 1 — protection applied on top of the material rather than by it. With
+   the two-state ladder there is nothing for it to do: at density 0 the media is
+   calm, at density 2 the fill is already opaque. Use .glass-scroll-edge for bars,
+   or density 2. The class is kept as a no-op so existing markup does not break. */
+.glass-scrim-text{}
+
+/* the one-sided protection gradient, for a stage-wide bottom edge */
+.glass-scrim{position:absolute;inset:auto 0 0 0;height:62%;border-radius:inherit;pointer-events:none;background:linear-gradient(to top,rgba(10,10,10,.42),rgba(10,10,10,0))}
+.light .glass-scrim,.ui-light .glass-scrim{background:linear-gradient(to top,rgba(255,255,255,.5),rgba(255,255,255,0))}
+
+/* ── The hued translucent fill · v0.3 ──────────────────────────────────────────
+   v0.2 applied this only at density 2, where it was OPAQUE — the hue survived but
+   nothing else did. v0.3 applies it always and gives it an alpha, so it is simply the
+   fill: the stage's real hue at an authored lightness, half see-through.
+
+   The authored L is what lets the guarantee hold while the pane stays translucent.
+   Contrast is set by the pinned lightness and by α; chroma is free and cannot move
+   luminance however saturated the background gets — which is how a surface can be
+   colourful, transparent and provable at the same time.
+
+   Still gated on a PUBLISHED tone: an unpublished tone is the achromatic 128,128,128
+   default, whose hue angle is arithmetic noise, and relative colour syntax resolves it
+   to 0deg — a red card. Chroma is proportional for the same reason.
+
+   Composed at the point of use, never pre-assembled into a token: a custom property
+   substitutes its var()s where it is DECLARED, so a fill built in :root would read the
+   achromatic fallback and paint every surface in the system one identical colour. */
+@supports (color:oklch(from red 50% .1 h)){
+[data-stage-tone],
+[data-mood],
+[data-stage-media]{
+--glass-text-muted:oklch(from rgb(var(--stage-tone-rgb,128,128,128)) var(--glass-muted-l) clamp(0,calc(c * .8),var(--glass-muted-c)) h);
+}
+[data-stage-tone] .glass,
+[data-mood] .glass,
+[data-stage-media] .glass{
+background-image:none;
+background-color:oklch(from rgb(var(--stage-tone-rgb,128,128,128)) var(--glass-fill-l) clamp(0,calc(c * var(--glass-fill-gain)),var(--glass-fill-c)) h / var(--glass-alpha));
+}
+/* the class and the token must agree — an author writing color:var(--glass-text-muted)
+   on a label inside the pane has to land where .glass-muted lands, or the tier splits
+   into two colours on one surface. */
+[data-stage-tone] .glass-muted,
+[data-mood] .glass-muted,
+[data-stage-media] .glass-muted{color:var(--glass-text-muted)}
+}
+
+/* per-surface guaranteed fill — the density-2 escape for a single surface. Use only
+   where a stage cannot own the decision; stage scope is always preferred.
+
+   These name their own lightness, so they do not follow the chrome — but they still
+   borrow the stage's hue where one was published. No selector gate is needed here:
+   chroma is proportional, so an unpublished (achromatic) tone yields chroma 0 and the
+   fill lands on neutral grey by arithmetic rather than by fallback. */
+[data-glass-fill="light"]{
+--glass-blur:var(--glass-blur-override);
+--glass-text:#141414;
+--glass-text-muted:#3d3d3d;
+background-color:var(--glass-fill-override-light);
+border-color:rgba(255,255,255,.7);
+}
+[data-glass-fill="dark"]{
+--glass-blur:var(--glass-blur-override);
+--glass-text:#f2f2f2;
+--glass-text-muted:#b8b8b8;
+background-color:var(--glass-fill-override-dark);
+border-color:rgba(255,255,255,.12);
+}
+@supports (color:oklch(from red 50% .1 h)){
+[data-glass-fill="light"]{
+background-image:none;
+background-color:oklch(from rgb(var(--stage-tone-rgb,128,128,128)) 90% clamp(0,calc(c * 1.4),.10) h);
+--glass-text-muted:oklch(from rgb(var(--stage-tone-rgb,128,128,128)) 36% clamp(0,calc(c * .8),.085) h);
+}
+[data-glass-fill="dark"]{
+background-image:none;
+background-color:oklch(from rgb(var(--stage-tone-rgb,128,128,128)) 24% clamp(0,calc(c * 1.4),.11) h);
+--glass-text-muted:oklch(from rgb(var(--stage-tone-rgb,128,128,128)) 70% clamp(0,calc(c * .8),.06) h);
+}
+}
+
+/* ── Tiers ───────────────────────────────────────────────────────────────────────
+   The payoff of tone-as-data: drop the only expensive filter, keep the color story. */
+[data-glass-tier="lite"]{--glass-density-alpha:.08 /* @kind other */}
+[data-glass-tier="lite"] .glass{-webkit-backdrop-filter:none;backdrop-filter:none}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+:root{--glass-density-alpha:.10 /* @kind other */}
+}
+@media (prefers-reduced-transparency:reduce){
+:root{--glass-tone-alpha:.06 /* @kind other */}
+.glass{-webkit-backdrop-filter:none;backdrop-filter:none;background-color:var(--glass-fill-override);color:var(--glass-text-override)}
+.glass-muted{color:var(--glass-text-override-muted)}
+/* reduced transparency asks for an opaque surface, not a colourless one — the hue
+   survives, since it was never what made the surface hard to read. */
+@supports (color:oklch(from red 50% .1 h)){
+[data-stage-tone],[data-mood],[data-stage-media]{--glass-text-muted:oklch(from rgb(var(--stage-tone-rgb,128,128,128)) var(--glass-muted-l) clamp(0,calc(c * .8),var(--glass-muted-c)) h)}
+[data-stage-tone] .glass,[data-mood] .glass,[data-stage-media] .glass{background-image:none;background-color:oklch(from rgb(var(--stage-tone-rgb,128,128,128)) var(--glass-fill-l) clamp(0,calc(c * var(--glass-fill-gain)),var(--glass-fill-c)) h)}
+[data-stage-tone] .glass-muted,[data-mood] .glass-muted,[data-stage-media] .glass-muted{color:var(--glass-text-muted)}
+}
+}
+
+/* ── Interaction ─────────────────────────────────────────────────────────────────
+   Glass never changes hue on hover — only its alpha and its edge brighten. */
+[data-glass-interactive]{cursor:pointer;transition:background-color .18s cubic-bezier(.2,.6,.2,1),box-shadow .18s cubic-bezier(.2,.6,.2,1),border-color .18s cubic-bezier(.2,.6,.2,1),transform .12s cubic-bezier(.2,.6,.2,1)}
+/* v0.3: hover raises THICKNESS rather than painting a flat tint over the hued fill.
+   The stage-scoped fill reads --glass-alpha per element, so bumping the variable
+   deepens the same colour instead of replacing it with grey. */
+[data-glass-interactive]:hover{--glass-thickness:.62 /* @kind other */;border-color:var(--glass-edge-inner)}
+/* The 4px lift belongs HERE, not on the element. It was previously authored as a
+   per-element inline hover style, which is not a rule but N chances to forget one:
+   the storyboard accumulated three different values (2/3/4px) plus cards that lifted
+   not at all, and normalising the written ones could not reach the ones nobody wrote.
+   Declared once, every interactive card lifts \u2014 including the next one added.
+
+   Scoped to CARDS deliberately. [data-glass-interactive] also sits on buttons and
+   chips, where a translate reads as a card picking itself up rather than a control
+   depressing; those keep the thickness bump and the :active press alone.
+
+   Non-interactive card specimens are untouched by construction \u2014 no interactive
+   attribute, no lift \u2014 which is what keeps the composition and calibration frames
+   from animating under the cursor. */
+[data-glass-level="card"][data-glass-interactive]:hover{transform:translateY(-4px)}
+[data-glass-interactive]:active{transform:translateY(1px) scale(.994)}
+
+/* ── Emphasis ─ hierarchy without hue ─────────────────────────────────────
+   Identity hue is OPTIONAL in this system, so emphasis can never depend on it.
+   It comes from material instead: how much light a surface stops, how brightly
+   its edge is lit, and how far it sits off the stage.
+
+     primary    thickest fill · brightest edge · lifted · 600 weight
+     secondary  the plain glass recipe — the default, no modifiers
+     tertiary   no fill, no edge, no shadow — type alone, until hovered
+
+   Emphasis is ORTHOGONAL to level. Level says what kind of thing a surface is
+   (button, nav, card, modal) and sets blur; emphasis says how loud it is within
+   its own group. A tertiary modal and a primary button are both legal.
+
+   The contract: PRIMARY IS ALWAYS THE HIGHEST-CONTRAST SURFACE AVAILABLE AT THE
+   CURRENT DENSITY. At 0 and 1 that is the thickest glass. At 2 — where glass is
+   switched off entirely — it inverts to a solid ink fill, which is still
+   achromatic and still unambiguous. Emphasis therefore survives every density
+   state, and survives grayscale, because no rung of it was ever colour.
+   ───────────────────────────────────────────────────────────────────── */
+.glass[data-emphasis="primary"]{
+background-image:none;
+background-color:var(--glass-solid);
+color:var(--glass-solid-text);
+border-color:transparent;
+font-weight:var(--weight-semibold);
+-webkit-backdrop-filter:none;
+backdrop-filter:none;
+box-shadow:var(--glass-focus-ring),var(--glass-shadow),0 2px 10px -6px rgba(10,10,10,.4);
+}
+
+/* secondary is the unmodified recipe — named so authors can be explicit,
+   and so the linter can require an emphasis on every action group. */
+.glass[data-emphasis="secondary"]{--glass-emphasis-alpha:0 /* @kind other */}
+
+.glass[data-emphasis="tertiary"]{
+--glass-emphasis-alpha:0 /* @kind other */;
+background-image:none;
+background-color:rgba(var(--glass-tint),calc(var(--glass-base-alpha) * .6));
+border-color:transparent;
+box-shadow:var(--glass-focus-ring);
+color:var(--glass-text);
+}
+/* tertiary deepens on hover rather than appearing from nothing */
+[data-glass-interactive][data-emphasis="tertiary"]:hover{background-color:rgba(var(--glass-tint),calc(var(--glass-base-alpha) * 1.3))}
+
+/* Density 2: the thin rungs need treatment — and so does primary, which is the part
+   this comment used to get wrong.
+
+   "Primary is already solid at every density" was false, and the harness caught it:
+   the stage-scoped hued fill is `[data-mood][data-density="2"] .glass` at (0,3,0),
+   while primary's own fill is `.glass[data-emphasis="primary"]` at (0,2,0). The
+   stage won, so on every density-2 stage the primary action painted the light hued
+   fill and kept --glass-solid-text on top of it: white on near-white, measured at
+   1.34:1. The single most important control in the system, illegible, while every
+   surface around it passed.
+
+   The lesson generalises past this bug: a stage-scoped fill is written as a
+   DESCENDANT selector, so it silently outranks anything a surface declares about
+   itself with a plain class-plus-attribute. Any surface-level fill that must survive
+   the stage has to be republished at stage specificity — being later in the file is
+   not enough. Emphasis is the only such fill today, which is why this block exists
+   rather than a general escape hatch. */
+[data-density="2"] .glass[data-emphasis="secondary"]{border-color:var(--glass-edge-override)}
+[data-density="2"] .glass[data-emphasis="tertiary"]{background-color:transparent;border-color:transparent;text-shadow:none}
+[data-density="2"] .glass[data-emphasis="primary"],
+[data-stage-tone][data-density="2"] .glass[data-emphasis="primary"],
+[data-mood][data-density="2"] .glass[data-emphasis="primary"],
+[data-stage-media][data-density="2"] .glass[data-emphasis="primary"]{
+background-image:none;
+background-color:var(--glass-solid);
+color:var(--glass-solid-text);
+}
+@media (prefers-reduced-transparency:reduce){
+.glass[data-emphasis="tertiary"]{background-color:transparent;border-color:transparent;text-shadow:none}
+/* same specificity trap as density 2, same fix: inside this query the hued fill is
+   `[data-mood] .glass`, so primary must be republished at stage specificity. */
+[data-stage-tone] .glass[data-emphasis="primary"],
+[data-mood] .glass[data-emphasis="primary"],
+[data-stage-media] .glass[data-emphasis="primary"]{background-image:none;background-color:var(--glass-solid);color:var(--glass-solid-text)}
+}
+@media (prefers-contrast:more){
+[data-stage-tone] .glass[data-emphasis="primary"],
+[data-mood] .glass[data-emphasis="primary"],
+[data-stage-media] .glass[data-emphasis="primary"]{background-image:none;background-color:var(--glass-solid);color:var(--glass-solid-text)}
+}

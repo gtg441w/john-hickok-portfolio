@@ -1,0 +1,80 @@
+/* ── Tier 2 · choreography ─────────────────────────────────────────────────────
+   Two moves, and a hard limit on what may move.
+
+   1. LOAD REVEAL. A surface enters by translate + opacity, staggered in DOM order.
+   2. SCROLL PARALLAX. Only Layer 1 moves. The glass does not.
+
+   WHY ONLY LAYER 1 PARALLAXES. This is the whole point, and it is the one motion
+   move that belongs to this system rather than to websites in general. Glass has no
+   appearance of its own — it samples what passes beneath it. So the interesting
+   motion is not the glass moving, it is the MEDIA MOVING UNDER STATIONARY GLASS:
+   the tone the surface borrows changes, the specular edge catches different light,
+   and refraction (where supported) has something to bend. Parallax the glass too
+   and the relative motion cancels — you get drift, which costs the same and shows
+   nothing. So the glass is pinned to the content plane and the media slides.
+
+   WHAT MAY NOT MOVE. No animated blur, no animated backdrop-filter, no scale on a
+   blurred surface (F-motion). Scaling re-samples the backdrop at a new size every
+   frame, which is the expensive case the rule exists to prevent — a translate is
+   the one transform the compositor handles for free. Density never animates either:
+   crossing from density 0 to 2 mid-scroll pops, because the fill goes opaque in one
+   step. A bar that needs help over busy media uses .glass-scroll-edge, whose
+   gradient CAN be interpolated.
+
+   FAILS SAFE, like refraction. Nothing here hides content until the choreographer
+   has claimed the page with data-choreography="on" on <html>. If the script never
+   runs, never loads, or throws, every surface is simply visible in its final state.
+   A reveal that hides content by default and reveals it with JS is a blank page
+   waiting for one bad deploy. */
+
+:root{
+--ease-glass:cubic-bezier(.2,.6,.2,1) /* @kind other */;
+--dur-reveal:380ms /* @kind other */;
+--dur-stage:480ms /* @kind other */;
+--reveal-hold:120ms /* @kind other */;
+--reveal-step:60ms /* @kind other */;
+/* the stagger is capped: past six surfaces the tail is longer than anyone waits,
+   so everything after the cap enters with the sixth rather than later. */
+--reveal-cap:6 /* @kind other */;
+--reveal-rise:12px;
+--parallax-depth:48px;
+}
+
+/* ── Load reveal ───────────────────────────────────────────────────────────────
+   A transition rather than an animation, so the state is idempotent: re-entering
+   the viewport, a re-render, or a hot reload cannot restart a surface mid-flight. */
+[data-choreography="on"] [data-reveal]{opacity:0;transform:translate3d(0,var(--reveal-rise),0);transition:opacity var(--dur-reveal) var(--ease-glass) var(--reveal-delay,0ms),transform var(--dur-reveal) var(--ease-glass) var(--reveal-delay,0ms)}
+[data-choreography="on"] [data-reveal="in"]{opacity:1;transform:none}
+/* The stage itself fades without rising. Layer 1 is the room; the room does not
+   arrive from somewhere, it turns on. Layer 2 is what arrives. */
+[data-choreography="on"] .stage[data-reveal],[data-choreography="on"] .backdrop[data-reveal]{transform:none;transition-duration:var(--dur-stage)}
+
+/* ── Scroll parallax ───────────────────────────────────────────────────────────
+   The stage publishes --parallax-y; the media layer inside it consumes it. Two
+   media layers exist because the two Layer 1 publishers paint differently:
+   LiveBackdrop has a real canvas child (.stage-media), while BackdropStage paints
+   background-image on the stage element itself — where translating the element
+   would drag the glass with it. Hence the pseudo-element, inflated by the travel
+   distance on both axes so sliding never exposes an edge.
+
+   No transition on either: this is scroll-linked and must track the pointer exactly.
+   A transition here reads as lag, not as smoothing. */
+.stage-media{transform:translate3d(0,var(--parallax-y,0px),0)}
+/* Both shapes are supported on purpose. data-parallax lands on a WRAPPER as often
+   as on the stage itself — a wrapper is where an author naturally puts it, and the
+   canvas case works either way because custom properties inherit. The
+   pseudo-element case does not inherit an ATTRIBUTE, so matching only
+   .backdrop[data-parallax] silently produced no ::before at all when the mark sat
+   one level up. Both selectors, so the mechanism cannot be defeated by where the
+   attribute was written. */
+.backdrop[data-parallax]::before,[data-parallax] .backdrop::before{content:"";position:absolute;left:0;right:0;top:calc(var(--parallax-depth) * -1);bottom:calc(var(--parallax-depth) * -1);z-index:0;background-image:inherit;background-size:cover;background-position:center;transform:translate3d(0,var(--parallax-y,0px),0)}
+
+/* ── Reduced motion ────────────────────────────────────────────────────────────
+   Parallax is removed outright — it is motion with no informational content. The
+   reveal keeps its opacity fade and loses the rise and the stagger: a cross-fade is
+   not vestibular, and dropping the reveal entirely would make a long page appear in
+   one jarring block. */
+@media (prefers-reduced-motion:reduce){
+[data-choreography="on"] [data-reveal]{transform:none;transition:opacity 200ms var(--ease-glass) 0ms}
+.stage-media,.backdrop[data-parallax]::before,[data-parallax] .backdrop::before{transform:none}
+}

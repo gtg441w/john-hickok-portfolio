@@ -1,0 +1,14 @@
+body{margin:0;font-family:var(--font-ui);font-size:var(--text-body);line-height:var(--leading-body);letter-spacing:var(--tracking-body);color:var(--text-body);background:var(--surface-page)}
+a{color:var(--text-strong);text-decoration:none;border-bottom:1px solid var(--line-hairline)}
+a:hover{color:var(--text-body);border-bottom-color:currentColor}
+.mono{font-family:var(--font-mono);font-size:var(--text-micro);letter-spacing:var(--tracking-micro);text-transform:uppercase;font-variant-numeric:tabular-nums}
+
+/* Display face is loaded at 700 only — a single weight forces real hierarchy
+   from size instead of faked hierarchy from 500-vs-600 nudges. */
+h1,h2,h3,h4,.display{font-family:var(--font-display);font-weight:var(--weight-bold)}
+h1,.display{font-size:var(--text-display);letter-spacing:var(--tracking-display);line-height:var(--leading-display)}
+h2{font-size:var(--text-title);letter-spacing:var(--tracking-title);line-height:var(--leading-title)}
+h3{font-size:var(--text-lead);letter-spacing:var(--tracking-lead);line-height:var(--leading-lead)}
+h4{font-size:var(--text-body);letter-spacing:var(--tracking-body);line-height:var(--leading-body)}
+.hero{font-family:var(--font-display);font-size:var(--text-hero);font-weight:var(--weight-bold);line-height:var(--leading-hero);letter-spacing:var(--tracking-hero)}
+.mega{font-family:var(--font-display);font-size:var(--text-mega);font-weight:var(--weight-bold);line-height:var(--leading-mega);letter-spacing:var(--tracking-mega)}

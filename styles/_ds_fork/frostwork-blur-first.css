@@ -1,0 +1,260 @@
+/* ── Frostwork · project fork ─ "blur wins wherever AA holds" ───────────────────
+   Loaded AFTER tokens/glass.css and styles.css. Everything here is an amendment to
+   the shipped v0.3, written down so a developer reads the reasoning, not just the
+   value.
+
+   WHAT THE FORK FOUND. The shipped system is already v0.3, and v0.3 had already done
+   most of what this project's rule asks for: blur and alpha are decoupled, alpha is a
+   single solved .50 in BOTH modes, the six-rung depth ladder is gone, and the density
+   enum is retired — tokens/glass.css resolves [data-density="0"] and [data-density="2"]
+   to identical values. The project note that said "restore the derived .23/.31 and you
+   break AA" was describing v0.2. There is no derived alpha left to restore.
+
+   SO THE FORK IS SMALL, and that is the honest result. Two things in the shipped
+   system still disagree with the rule, and this file fixes exactly those two.
+   ─────────────────────────────────────────────────────────────────────────────── */
+
+/* ── 1 · The stale half of the retirement ──────────────────────────────────────
+   The CSS retired density. The JS did not: components/surfaces/media-registry.js
+   still ships v0.2's measured table with `density: "2"` verdicts, still applies
+   legality rule 1 (p50 ≥ 128 → light field → density 2) and rule 2 (bidirectional →
+   density 2), and stageFacts() still publishes density "2" for any image with no
+   registry entry — which is every image a CMS will ever hand it.
+
+   That verdict is no longer inert. Thickness ignores it, but tokens/glass.css still
+   carries this:
+
+       [data-density="2"],[data-glass-fill="light"],[data-glass-fill="dark"]{
+         --glass-text:var(--glass-text-override);
+         --glass-text-muted:var(--glass-text-override-muted);
+       }
+
+   …so a stale density-2 verdict silently swaps the ink roles out from under a pane
+   that is, materially, still transmitting glass. The override roles were solved
+   against an OPAQUE fill; on a translucent pane they are answering for a surface that
+   is not there. That is the v0.2 "give up early" reflex surviving in the one place
+   the CSS retirement did not reach.
+
+   The fix is to finish the retirement rather than to fight it: re-point the ink roles
+   at the chrome roles, which is what v0.3 says ink follows. The two genuinely-opaque
+   paths keep the override, because for them the override is correct — an opaque fill
+   really does take its luminance from chrome, and a per-surface [data-glass-fill] is
+   an author explicitly asking for the guaranteed state.
+
+   Written at the same specificity as the rule it amends, and later in the cascade. */
+[data-density="2"]:not([data-glass-fill="light"]):not([data-glass-fill="dark"]){
+--glass-text:var(--glass-text-override, #f2f2f2);
+--glass-text-muted:var(--glass-text-override-muted, #d0d0d0);
+}
+.light [data-density="2"]:not([data-glass-fill]),
+.ui-light [data-density="2"]:not([data-glass-fill]),
+:root:not(.dark):not(.ui-dark) [data-density="2"]:not([data-glass-fill]){
+--glass-text:#141414;
+--glass-text-muted:#3a3a3a;
+}
+.dark [data-density="2"]:not([data-glass-fill]),
+.ui-dark [data-density="2"]:not([data-glass-fill]){
+--glass-text:#f2f2f2;
+--glass-text-muted:#d0d0d0;
+}
+
+/* Emphasis is republished for the same reason it is republished at density 2 upstream:
+   a stage-scoped fill is a descendant selector and outranks a surface's own class. */
+[data-density="2"] .glass[data-emphasis="primary"]{
+background-image:none;
+background-color:var(--glass-solid);
+color:var(--glass-solid-text);
+}
+
+/* ── 2 · The scrim · the measurement the CMS cannot run ────────────────────────
+   v0.3 replaced v0.2's per-image measurement registry with a one-sided CONTRACT:
+
+       light chrome  unconstrained — half an L95% fill clears AA over pure black
+       dark chrome   the background must stay below ~.18 relative luminance
+
+   That is a fine contract for hand-picked media and an unusable one for a CMS, which
+   will hand the stage a white-sky photograph on a Tuesday. Something has to hold the
+   dark side of the contract without measuring, and a scrim is the only mechanism that
+   can: it does not inspect the photograph, it BOUNDS it.
+
+   DERIVED, NOT JUDGED. Composite an alpha-a black scrim over the worst photograph
+   that could ever arrive — pure white, srgb 255 — and require the result to sit under
+   the contract's ceiling:
+
+       composite = (1 − a) × 255,  relative luminance ≤ .18
+       → a ≥ .5386
+
+   .62 is the shipped value: worst-case luminance .119 against a .18 ceiling, which is
+   real headroom rather than the two hundredths this system has been burned by twice
+   before. The first pass at this was .78 — guessed, not solved — and it cost every
+   good photograph about a third of its contrast for nothing. Solve, then measure,
+   then publish; do not guess and call it conservative.
+
+   FULL-HEIGHT RAMP, BOTTOM-UP. Solid across the pane band (the bottom 38.2%, C3's
+   golden minor), then ramping to nothing at the top of the still. The band is where
+   text sits and therefore where the contract must hold; above it the photograph is
+   only ever a photograph, and darkening it buys nothing.
+
+   WHAT THE BAND MEANS NOW. --scrim-band described the artifact card's pane band while
+   that pane sat over the still. Section 3 took the ink off the still, so the constant
+   now describes exactly one surface: the site's own backdrop stage, which is still a
+   stage and still carries text over media. Same number, one caller.
+
+   PER-STILL ESCAPE. --scrim is an ordinary custom property, so a CMS field can lower
+   it on a still whose own measurement permits. Worst case stays the default: an
+   unset field must never be the unsafe one. */
+:root{
+--scrim:.62;
+--scrim-band:38.2%;
+}
+
+/* The class form. Put it on the stage that carries the media.
+
+   A PSEUDO-ELEMENT, not a background layer, and the first draft got this wrong. A
+   stage sets its photograph with an inline `background:` shorthand, which is an
+   inline background-image — so a class that also declares background-image loses to
+   it unconditionally and the scrim silently never paints. The lesson is the same one
+   the density-2 emphasis bug taught upstream: a rule that must survive the thing it
+   amends has to win the cascade against it, and being later in the file is not
+   winning.
+
+   ::before rather than ::after, deliberately. Both the scrim and the pane are
+   positioned with an auto z-index, so paint order follows DOM order — ::before is the
+   stage's first child and the pane comes later, which puts the pane above the scrim
+   without either one naming a z-index. ::after would paint over the pane and frost
+   the text instead of the photograph. */
+.stage-scrim::before{
+content:"";
+position:absolute;
+inset:0;
+pointer-events:none;
+border-radius:inherit;
+background:linear-gradient(to top,
+  rgba(0,0,0,var(--scrim,.62)) 0%,
+  rgba(0,0,0,var(--scrim,.62)) var(--scrim-band,38.2%),
+  rgba(0,0,0,0) 100%);
+}
+
+/* Light chrome is unconstrained under v0.3 — no background can drag an L95% fill at
+   α .50 under the bar — so the scrim has no contract to hold there. It stays on at a
+   reduced strength purely as tone: pulled all the way off, the same card reads as two
+   different designs depending on the mode. This value answers to taste, and is the
+   only number in this file that does. */
+.light .stage-scrim,.ui-light .stage-scrim{--scrim:.28}
+
+/* NOT for the calibration specimens. A measurement frame exists to show what the
+   media does to a pane unaided; scrimming one would be measuring the scrim. The
+   class is opt-in for exactly this reason — .stage alone stays unscrimmed. */
+
+/* A scrim is a legibility mechanism, so it is redundant once the fill goes opaque —
+   and under reduced transparency it is actively wrong: the user asked for less
+   visual complexity, not a darker photograph behind an opaque plate. */
+@media (prefers-reduced-transparency:reduce){
+.stage-scrim::before{display:none}
+}
+@media (prefers-contrast:more){
+.stage-scrim{--scrim:.72}
+}
+
+/* ── 3 · Bounded media · the artifact card composition ────────────────────────
+   CODIFIED, not advised. This section is the rule; nothing in prose repeats it that
+   is not declared here, and conformance check 16 — see frostwork-rules-addendum.js —
+   measures it against the rendered page.
+
+   THE RULE. On an artifact card, media is BOUNDED: it bleeds to the card's left,
+   right and top edges and stops at the text band. No ink is ever set over the
+   photograph. The band is not a pane over the still — it is the card's own glass,
+   transmitting the site backdrop.
+
+   WHY, and this is the part worth keeping. The pane-over-still composition made
+   legibility a property of the PHOTOGRAPH: every new still reopened the question, and
+   the scrim in section 2 bounds that problem rather than solving it. With the media
+   bounded, the pane reads only the backdrop — which the site owns, in both modes — so
+   contrast becomes a property of the MODE. The worst case that motivated the whole
+   per-still apparatus, a dark still under light chrome, cannot arise, because the
+   still is no longer under any ink.
+
+   This is the cheaper guarantee, and it is the one this fork prefers: a structural
+   rule beats a measured one wherever the structure is available. Section 2 is not
+   retired by it — the site's own backdrop stage still carries text over media, and
+   the .62 derivation still governs it unchanged. What shrank is the number of
+   surfaces the derivation has to hold for: five to one.
+
+   TRANSMISSION IS UNCHANGED. The band is full glass — same --glass-thickness .50,
+   same 32px blur, same tone wash. Nothing here trades translucency for contrast; it
+   relocates what the translucency is looking at.
+
+   ONE SHAPE, TWO SIZES. The hero and the rail card are the same composition at
+   different scales. They were drifting apart as separate hand-built recipes, which is
+   how the rail cards ended up declaring themselves stages and publishing a
+   hand-written tone for media they no longer put text on. The geometry lives here so
+   there is one place for it to be right. */
+[data-artifact-card]{
+--artifact-radius:var(--radius-lg, 24px);
+--artifact-band-pad:16px;
+--artifact-band-gap:8px;
+padding:0;
+overflow:hidden;
+display:grid;
+grid-template-rows:minmax(0,1fr) auto;
+gap:0;
+border-radius:var(--artifact-radius);
+}
+[data-artifact-card][data-artifact-size="sm"]{
+--artifact-radius:var(--radius-md, 16px);
+--artifact-band-pad:10px 12px 12px;
+--artifact-band-gap:6px;
+}
+
+/* The media row. Owns no radius of its own — the card's overflow:hidden clips it, so
+   the top corners follow the card and can never disagree with it. background-image
+   rather than the `background` shorthand, deliberately: the shorthand is what beat the
+   scrim class in section 2, and an author setting one here would reset the fallback
+   colour and the sizing along with it. */
+[data-artifact-card] > [data-artifact-media]{
+min-height:0;
+background-color:#0a0a0c;
+background-size:cover;
+background-position:center;
+background-repeat:no-repeat;
+}
+
+/* The band. Declares NO fill and NO filter: it is a window onto the card's own glass,
+   which is the whole point of the composition. A backdrop-filter here would be a
+   second blur inside the pane — the nesting rule already strips it, and stating it
+   locally means an author does not have to discover that by looking. */
+[data-artifact-card] > [data-artifact-band]{
+box-sizing:border-box;
+padding:var(--artifact-band-pad);
+display:grid;
+gap:var(--artifact-band-gap);
+align-content:end;
+background:none;
+-webkit-backdrop-filter:none;
+backdrop-filter:none;
+border-top:var(--hairline) solid var(--glass-edge);
+box-shadow:inset 0 var(--hairline) 0 var(--glass-edge-inner);
+}
+
+/* No scrim on an artifact card, and it is declared rather than merely omitted. An
+   omission is indistinguishable from an oversight; this is the reason written down.
+   There is no ink over this media, so there is no contract for a scrim to hold, and
+   darkening the photograph would cost transmission to buy nothing. */
+[data-artifact-card] [data-artifact-media]::before{content:none}
+
+/* The tripwire. Text inside the media row is the one way to author this composition
+   wrongly while it still looks plausible, so it fails VISIBLY in development rather
+   than quietly in production. Gated on an authoring flag because a red outline is not
+   a thing to ship; check 16 is the ungated enforcement. */
+[data-frostwork-dev] [data-artifact-media] :where(h1,h2,h3,h4,h5,p,span,a,button,li,dt,dd,label){
+outline:2px dashed #ff3b30;
+outline-offset:2px;
+}
+
+/* ── What this fork does NOT change ────────────────────────────────────────────
+   AA is the floor and is non-negotiable. Blur is never nested. The stage still owns
+   the facts and publishes them once; surfaces still decide nothing. The three opaque
+   escapes — prefers-reduced-transparency, prefers-contrast, and an authored
+   data-glass-fill — are untouched, because each is a user or author asking for the
+   guaranteed state rather than the system giving up on their behalf. The distinction
+   this whole fork turns on is who is doing the asking. */

@@ -1,0 +1,22 @@
+node_modules/
+.next/
+out/
+build/
+.DS_Store
+*.pem
+.env*
+!.env.example
+next-env.d.ts
+.vercel
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+*.tsbuildinfo
+
+# Design reference material — kept on disk, deliberately out of git.
+# 128 MB of .mp4/.gif clips and a deliverables zip. Git cannot diff video, so a
+# binary that large never shrinks: it is carried by every clone and every Vercel
+# build forever, and removing it later means rewriting history. It is reference,
+# not source — nothing in the build reads it.
+design/reference/

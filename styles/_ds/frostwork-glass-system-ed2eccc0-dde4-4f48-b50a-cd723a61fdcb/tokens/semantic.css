@@ -1,0 +1,123 @@
+/* ── Tier 2 · MEANING ──────────────────────────────────────────────────────────
+   Three states, and a focus mechanism. Hue is permitted here and only here
+   (plus the optional brand slots) — but it is always the SECOND signal.
+
+   THE RULE: a state is never expressible without its non-colour carrier. The
+   .status recipe below cannot render without an icon, so the grayscale test
+   passes by construction rather than by review.
+
+   There is deliberately no `info` state. Neutral IS informational in this
+   system — that is what the whole achromatic structure layer does. An info blue
+   would be a fourth hue whose only real job is to look like an accent, and it is
+   the token most likely to erode the restraint the system is built for.
+
+   Each state carries three values:
+     --x          solid base, for painted fills and badges
+     --x-fg       guaranteed-contrast text ON that base
+     --x-glass    the version that survives a translucent fill over live media
+
+   The -glass variants resolve from the stage's PUBLISHED luminance, not from a
+   guess — same three-layer contract as everything else. A state on a dark stage
+   gets a lighter, more chromatic value; on a light stage, a darker one.
+   ─────────────────────────────────────────────────────────────────────────── */
+:root{
+--success:oklch(52% 0.13 150);
+--success-fg:#ffffff;
+--warning:oklch(72% 0.15 78);
+--warning-fg:#0a0a0a;
+--danger:oklch(55% 0.20 25);
+--danger-fg:#ffffff;
+
+/* off-glass default: the base value is already correct on opaque surfaces */
+--success-glass:var(--success);
+--warning-glass:var(--warning);
+--danger-glass:var(--danger);
+
+/* The two sets, named so they can be reselected when the EFFECTIVE surface
+   luminance stops matching the stage's. */
+--success-on-dark:oklch(80% 0.15 150);
+--warning-on-dark:oklch(87% 0.14 88);
+--danger-on-dark:oklch(74% 0.17 25);
+--success-on-light:oklch(43% 0.13 150);
+--warning-on-light:oklch(50% 0.12 68);
+--danger-on-light:oklch(46% 0.19 25);
+
+/* Local protection is RETIRED along with density 1. A box behind each status row
+   was protection applied on top of the material instead of by it; the two-state
+   ladder has no place for it. At density 0 the media is calm enough, at density 2
+   the fill is opaque. */
+
+/* Focus is a MECHANISM, not a state, and it gets a hue unrelated to the palette.
+   Two concentric rings — dark inner, light outer — because any single colour
+   vanishes against some stage. One of the two always contrasts, so the ring is
+   visible against live photography, both chrome modes, and the states above.
+   This is also why focus must never be the brand colour: a brand ring goes
+   invisible exactly when the stage agrees with the brand. */
+--focus-inner:rgba(10,10,10,.92);
+--focus-outer:rgba(255,255,255,.96);
+--focus-width-inner:2px;
+--focus-width-outer:4px;
+}
+
+/* -glass variants, derived from the stage's published luminance */
+[data-stage-luma="dark"]{
+--success-glass:var(--success-on-dark);
+--warning-glass:var(--warning-on-dark);
+--danger-glass:var(--danger-on-dark);
+}
+[data-stage-luma="light"]{
+--success-glass:var(--success-on-light);
+--warning-glass:var(--warning-on-light);
+--danger-glass:var(--danger-on-light);
+}
+
+/* ── When the surface stops being glass ────────────────────────────────────────
+   Stage luma describes the MEDIA. Density 2, a per-surface fill override, and
+   reduced-transparency all replace the fill with an opaque one chosen by CHROME
+   mode — at which point the media's luminance is no longer what the text sits on.
+   glass.css already handles this for the text role (--glass-text-override); these
+   are the matching overrides for the semantic set. Without them a light-chrome
+   density-2 surface pairs a near-white fill with the on-dark (bright) values and
+   every state fails contrast. */
+.light[data-density="2"],.light [data-density="2"],.ui-light[data-density="2"],.ui-light [data-density="2"],[data-glass-fill="light"]{
+--success-glass:var(--success-on-light);
+--warning-glass:var(--warning-on-light);
+--danger-glass:var(--danger-on-light);
+}
+.dark[data-density="2"],.dark [data-density="2"],.ui-dark[data-density="2"],.ui-dark [data-density="2"],[data-glass-fill="dark"]{
+--success-glass:var(--success-on-dark);
+--warning-glass:var(--warning-on-dark);
+--danger-glass:var(--danger-on-dark);
+}
+@media (prefers-reduced-transparency:reduce){
+.light,.light *,.ui-light,.ui-light *{--success-glass:var(--success-on-light);--warning-glass:var(--warning-on-light);--danger-glass:var(--danger-on-light)}
+.dark,.dark *,.ui-dark,.ui-dark *{--success-glass:var(--success-on-dark);--warning-glass:var(--warning-on-dark);--danger-glass:var(--danger-on-dark)}
+}
+
+/* light chrome over live media */
+
+/* ── The status recipe ─────────────────────────────────────────────────────────
+   An icon is structural, not decorative — .status reserves space for one and the
+   component API requires it. Colour reinforces; it never carries alone. */
+.status{display:inline-flex;align-items:center;gap:var(--space-2);font-family:var(--font-ui);font-size:var(--text-small);font-weight:var(--weight-semibold);line-height:1.2;color:var(--glass-text)}
+.status > svg{width:15px;height:15px;flex:0 0 auto;display:block}
+.status[data-state="success"]{color:var(--success-glass)}
+.status[data-state="warning"]{color:var(--warning-glass)}
+.status[data-state="danger"]{color:var(--danger-glass)}
+
+/* solid variant — a painted badge, for when a state must read at a glance across
+   a dense list. Uses the base values, never the -glass ones: it is opaque. */
+.status[data-variant="solid"]{padding:var(--space-1) var(--space-3);border-radius:var(--radius-pill)}
+.status[data-variant="solid"][data-state="success"]{background:var(--success);color:var(--success-fg)}
+.status[data-variant="solid"][data-state="warning"]{background:var(--warning);color:var(--warning-fg)}
+.status[data-variant="solid"][data-state="danger"]{background:var(--danger);color:var(--danger-fg)}
+
+/* ── Focus ─────────────────────────────────────────────────────────────────────
+   Applied through a custom property so the glass box-shadow stack survives
+   intact — the four-layer specular recipe must never be replaced (see
+   guidelines/glass/specular-edge.html). .focus-demo renders the same rings
+   statically for specimen cards. */
+.glass:focus-visible,.glass.focus-demo{outline:none;--glass-focus-ring:0 0 0 var(--focus-width-inner) var(--focus-inner),0 0 0 var(--focus-width-outer) var(--focus-outer)}
+@media (forced-colors:active){
+.glass:focus-visible{outline:2px solid Highlight;outline-offset:2px}
+}
