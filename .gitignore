@@ -20,3 +20,13 @@ next-env.d.ts
 # build forever, and removing it later means rewriting history. It is reference,
 # not source — nothing in the build reads it.
 design/reference/
+
+# Raw career/source material for the case studies — ON DISK, NEVER COMMITTED.
+# This repo is public. These are ChatGPT transcripts containing a personal phone
+# number and private addresses, compensation and severance discussion, an active
+# job search naming current and prospective employers, and a confidential
+# conversation about laying off a named-adjacent report who held a medical
+# accommodation. Publishing any of it would harm John and a third party who never
+# consented. It is INPUT to step 3, not output: what ships is the written case
+# study in content/, which cites none of this.
+content/source/
