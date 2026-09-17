@@ -9,6 +9,28 @@ it is a fork, and it belongs in `_ds_fork/` with its reasoning written down.
 
 ---
 
+## 0. `app/globals.css` — mood paint overridden for the generative stage
+
+**No vendored file edited.** An app-level rule overrides the mood class's paint for
+one stage, selected by `[data-stage-generative]`.
+
+`.backdrop--cool` paints a fixed dark-navy gradient in both chrome modes, which is
+correct for a mood standing in for a photograph — a dark still may legitimately
+appear in light chrome and keeps its dark luma. The site backdrop is not a still: it
+is a canvas (`components/backdrop/BackdropSlot.tsx`) repainted per chrome mode, which
+then publishes the `--stage-tone-rgb` and `data-stage-luma` it actually painted. Its
+pre-canvas fallback has to follow the mode for the same reason.
+
+Left alone, light chrome paints `#141414` ink over the dark-navy gradient for the
+frames before the canvas mounts — the mode flash the blocking script in `lib/theme.ts`
+exists to prevent, arriving by another door.
+
+Only the fallback colour moves. Tone, luma and every glass derivation are untouched,
+and the rule is scoped to the one stage that carries the attribute — no mood class
+changes meaning for any other caller.
+
+---
+
 ## 1. `_ds/…/tokens/glass.css` — stray `}` at line 505
 
 **Deleted one closing brace. Nothing else. Zero semantic change.**

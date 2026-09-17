@@ -18,3 +18,26 @@
 
 @import url("../styles/_ds/frostwork-glass-system-ed2eccc0-dde4-4f48-b50a-cd723a61fdcb/styles.css");
 @import url("../styles/_ds_fork/frostwork-blur-first.css");
+
+/* ── The generative stage's pre-canvas paint ───────────────────────────────────
+ * A mood class paints a FIXED still: `.backdrop--cool` is dark navy in both modes,
+ * which is right for a photograph — a dark still may legitimately sit in light
+ * chrome. This stage's media is generated (components/backdrop/BackdropSlot.tsx)
+ * and is repainted per chrome mode, so its fallback has to follow the mode too.
+ *
+ * Without this, light chrome paints its dark ink over the vendored dark-navy
+ * gradient for the frames before the canvas mounts — the same mode flash the
+ * blocking theme script in lib/theme.ts exists to prevent, arriving by another
+ * door. Keyed off .light/.dark, which that script sets before first paint, so this
+ * costs no JS and is correct on the first frame.
+ *
+ * Colours mirror PALETTES in BackdropSlot.tsx; change them together.
+ * Recorded in styles/PATCHES.md. */
+.backdrop[data-stage-generative] {
+  background-image: none;
+  background-color: #0d151b;
+}
+
+.light .backdrop[data-stage-generative] {
+  background-color: #f3f3ff;
+}
