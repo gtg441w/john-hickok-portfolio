@@ -30,3 +30,11 @@ design/reference/
 # consented. It is INPUT to step 3, not output: what ships is the written case
 # study in content/, which cites none of this.
 content/source/
+
+# Raw resume source (docx + extracted OOXML) — ON DISK, NEVER COMMITTED.
+# Contains a personal phone number in plaintext. "Phone held for the PDF, not the
+# page" (docs/HANDOFF_README.md) means kept off the rendered site — committing the
+# source to this public repo would defeat that by putting it in git history
+# instead. content/resume/ is where a future real download PDF gets generated
+# from; that PDF is the intended public artifact, not this source.
+content/resume/
