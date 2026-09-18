@@ -14,11 +14,14 @@ const frameworks = [
   { title: '[Framework 04]', subtitle: '[Framework 04 — one line.]' },
 ]
 
+/* Aloha Smart Manager is deliberately not here — held out of the collection
+ * pending review (Gate 0, docs/BUILD_PLAN.md). Don't add it back without
+ * revisiting that decision. */
 const projects = [
   { title: 'Fresco', src: '/media/artifact-movie-box.png', w: 752, h: 588 },
   { title: 'Cash Management', src: '/media/artifact-retreat-site.png', w: 900, h: 579 },
-  { title: 'Aloha Smart Manager', src: '/media/artifact-voice-app.png', w: 2048, h: 1536 },
   { title: 'ITM', src: '/media/artifact-weather-glass.png', w: 1200, h: 844 },
+  { title: '[Project 04]', src: '/media/artifact-voice-app.png', w: 2048, h: 1536 },
 ]
 
 export default function HomePage() {

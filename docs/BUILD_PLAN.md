@@ -12,24 +12,24 @@ it is trivial** rather than at the end when it is load-bearing.
 global stylesheet), Zod for content validation, Playwright for the conformance check.
 See `COMPONENT_INVENTORY.md`, `content.schema.ts`, `conformance.spec.ts`.
 
-Two open questions remain. Each one changes what gets built, so neither should be
-discovered mid-build.
+All three Gate 0 questions are now resolved.
 
-**Permission to publish.** Client work, NDAs, unreleased product stills. This
-determines which projects can be in the collection at all, and whether a given project
-can carry real screenshots or needs abstracted artifacts. Settle it first — it is the
-only item here that can invalidate finished work. The schema's `published` flag is
-where the per-project answer lands.
+**Resolved: permission to publish.** Fresco, Cash Management and ITM are cleared to
+publish with real screenshots — `published: true` in their frontmatter, step 3 writes
+them against real stills. **Aloha Smart Manager is held out of the collection for
+now** — not `published: false` as a permanent no, but genuinely undecided pending
+review. Don't draft its case study in step 3 and don't add it to any rail or the
+collection grid until this is revisited.
 
-**The generative backdrop (VANTA).** Still open, and **no longer blocking.** The
-homepage backdrop is specced as a slot with a static default, so the build proceeds and
-the decision can be made against a working page.
-
-Recommendation: **ship v1 without it.** A photographic or CSS-gradient stage costs
-nothing, and the glass reads as glass either way. Add it later behind
-`prefers-reduced-motion` and a measured frame budget, as an enhancement to a page that
-already works. If it ships in v1, it needs the blur-budget rig run on real hardware
-before the layout depends on it.
+**Resolved: the generative backdrop.** Shipped, but not VANTA/three.js — a
+dependency-free 2D canvas "net" effect (`components/backdrop/BackdropSlot.tsx`),
+recreated from the vendored design system's own `LiveBackdrop`, not the prototype's
+WebGL mesh. It's a site-wide stage in the root layout (every route, running to the
+top of the page), theme-reactive (repaints per chrome mode and republishes the tone/
+luma it actually painted — see `styles/PATCHES.md`), respects
+`prefers-reduced-motion` by painting one static frame and never animating, and
+destroys its rAF loop on unmount. If real Vanta/three.js is wanted later, it drops in
+behind the same `BackdropSlot` boundary.
 
 **Resolved: contrast strategy.** This was the third Gate 0 item, and the bounded-media
 rule closed it. Ink is no longer set over any artifact still, so nothing on a card
