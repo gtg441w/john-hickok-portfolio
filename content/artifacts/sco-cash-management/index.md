@@ -12,6 +12,14 @@ hero:
   width: 1920
   height: 1080
   chromeMode: dark
+heroClip:
+  src: /artifacts/sco-cash-management/hero-pickup-advance.mp4
+  poster:
+    src: /artifacts/sco-cash-management/hero-pickup-advance-poster.jpg
+    alt: "A silent clip, under five seconds, from the pickup prototype: the Open the unit door screen advances on its own to Remove note box, where the note box slides out of the unit. No tap moves it forward. The still frame is Open the unit door."
+    width: 2560
+    height: 556
+    chromeMode: dark
 gallery:
   - src: /artifacts/sco-cash-management/legacy-status-screen.jpg
     alt: "The legacy Cash Management screen: a coins overview and note recyclers as small grey tiles, with function buttons on the right for Dispense Functions, Reset Functions and Note Box Transfers, and a greyed-out Apply Changes, Cancel Changes and numeric keypad."

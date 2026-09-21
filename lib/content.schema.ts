@@ -88,6 +88,14 @@ export const Artifact = z.object({
   /** Shown as the card's meta line, e.g. "18 min · applies Altitude". */
   readingTime: z.number().int().positive().optional(),
   hero: Still,
+  /** Optional motion for the artifact's card, used only where the card is the page's
+   *  hero. Cut for the card, not reused from a section: the card's media box runs from
+   *  about 4.3:1 on a wide desktop to 1.6:1 on a phone, so the clip is padded out to a
+   *  wide canvas in the UI's own background colour and survives cover-cropping at
+   *  either end. It plays once and must run under five seconds — the card is a link,
+   *  so it cannot carry a pause control, and WCAG 2.2.2 requires one for motion that
+   *  starts on its own and lasts longer. `hero` stays the still everywhere else. */
+  heroClip: Clip.optional(),
   /** 3–6 curated stills. Not a dump of every screen: a project needing twenty is a
    *  signal to curate, and the gallery is sized for four. No completeness requirement. */
   gallery: z.array(Still).max(12).default([]),

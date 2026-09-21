@@ -79,6 +79,7 @@ export default function HomePage() {
             framing={heroArtifact.framing}
             meta={metaLine(heroArtifact)}
             still={heroArtifact.hero}
+            clip={heroArtifact.heroClip}
           />
         ) : (
           <ArtifactCard href="/work" size="lg" featured {...placeholderHero} />

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import type { Still } from '@/lib/content.schema'
+import type { Clip, Still } from '@/lib/content.schema'
 
 type ArtifactCardProps = {
   href: string
@@ -9,7 +9,45 @@ type ArtifactCardProps = {
   meta?: string
   featured?: boolean
   still: Still
+  /** Motion for the media row. Pass it only where this card is the page's hero: one
+   *  moving thing per page draws the eye, several make noise. */
+  clip?: Clip
   size?: 'lg' | 'sm'
+}
+
+/* THE CLIP IS THE MEDIA ELEMENT, NOT SOMETHING INSIDE IT. Nothing may render inside
+ * [data-artifact-media], so the <video> carries the attribute itself and takes the
+ * media row's place. Check 16 is geometric and tag-agnostic — two children, media
+ * bleeding to three edges, no ink over it — so the composition it enforces is the same
+ * one, with a moving still in it.
+ *
+ * It plays once and stops: autoplay, no loop, under five seconds. The card is a link,
+ * so a pause button cannot live in it (a control inside a link is invalid), and
+ * WCAG 2.2.2 requires one only for motion running longer than five seconds.
+ *
+ * REDUCED MOTION WITHOUT SCRIPT. The only <source> carries
+ * media="(prefers-reduced-motion: no-preference)". A reader who asks for reduced motion
+ * matches no source, so the element never loads video and shows its poster — the same
+ * still, framed for the card — with no JavaScript deciding it.
+ *
+ * aria-hidden because the still version is a CSS background, which assistive tech
+ * never sees: the card is named by its band text, and the media is decoration of a
+ * link whose purpose that text already carries. */
+function ClipMedia({ clip }: { clip: Clip }) {
+  return (
+    <video
+      data-artifact-media=""
+      autoPlay
+      muted
+      playsInline
+      disablePictureInPicture
+      preload="auto"
+      poster={clip.poster.src}
+      aria-hidden="true"
+    >
+      <source src={clip.src} type="video/mp4" media="(prefers-reduced-motion: no-preference)" />
+    </video>
+  )
 }
 
 /* Exactly three elements — the structure is the contract (COMPONENT_INVENTORY.md).
@@ -23,6 +61,7 @@ export default function ArtifactCard({
   meta,
   featured = false,
   still,
+  clip,
   size = 'lg',
 }: ArtifactCardProps) {
   return (
@@ -39,7 +78,11 @@ export default function ArtifactCard({
           : { aspectRatio: '16/9', scrollSnapAlign: 'start' }
       }
     >
-      <div data-artifact-media style={{ backgroundImage: `url(${still.src})` }} />
+      {clip ? (
+        <ClipMedia clip={clip} />
+      ) : (
+        <div data-artifact-media style={{ backgroundImage: `url(${still.src})` }} />
+      )}
       <div data-artifact-band>
         {size === 'lg' ? (
           <>
