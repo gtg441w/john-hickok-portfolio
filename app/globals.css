@@ -179,8 +179,9 @@
  * without this the card would grow to fit the video instead of the video filling the
  * card. Size containment makes the video contribute nothing, like the div it replaces.
  *
- * cover, because the clip is authored for it: padded out in the UI's own background
- * colour so any aspect from ~4.3:1 down to ~1.6:1 crops only padding. */
+ * cover, matching the still's background-size:cover, centred like its
+ * background-position:center. The clip shares the still's shape and opens and closes
+ * on it, so its first and last frames crop exactly as the still does. */
 [data-artifact-card] > video[data-artifact-media] {
   display: block;
   width: 100%;

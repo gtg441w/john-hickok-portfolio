@@ -13,12 +13,13 @@ hero:
   height: 1080
   chromeMode: dark
 heroClip:
-  src: /artifacts/sco-cash-management/hero-pickup-advance.mp4
+  src: /artifacts/sco-cash-management/hero-wide.mp4
+  narrowSrc: /artifacts/sco-cash-management/hero-narrow.mp4
   poster:
-    src: /artifacts/sco-cash-management/hero-pickup-advance-poster.jpg
-    alt: "A silent clip, under five seconds, from the pickup prototype: the Open the unit door screen advances on its own to Remove note box, where the note box slides out of the unit. No tap moves it forward. The still frame is Open the unit door."
-    width: 2560
-    height: 556
+    src: /artifacts/sco-cash-management/status-screen-final.png
+    alt: "The Cash Management status screen dissolves into the pickup prototype, where the Open the unit door screen advances on its own to Remove note box and the note box slides out, then dissolves back to the status screen. Silent, under five seconds, no tap involved."
+    width: 1920
+    height: 1080
     chromeMode: dark
 gallery:
   - src: /artifacts/sco-cash-management/legacy-status-screen.jpg

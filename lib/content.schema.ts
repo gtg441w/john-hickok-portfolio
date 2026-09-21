@@ -65,6 +65,10 @@ export type Still = z.infer<typeof Still>
    git repo, where a binary never shrinks once committed. */
 export const Clip = z.object({
   src: z.string().regex(/\.mp4$/, 'clips are H.264 MP4 — the one format every current browser plays'),
+  /** An alternate cut for viewports under 720px (the system's own break), where a card
+   *  is close to the clip's own shape instead of a thin letterbox and the same framing
+   *  would render its text too small to read. Same length, same timeline. */
+  narrowSrc: z.string().regex(/\.mp4$/).optional(),
   poster: Still,
   caption: z.string().optional()
 })
@@ -89,12 +93,14 @@ export const Artifact = z.object({
   readingTime: z.number().int().positive().optional(),
   hero: Still,
   /** Optional motion for the artifact's card, used only where the card is the page's
-   *  hero. Cut for the card, not reused from a section: the card's media box runs from
-   *  about 4.3:1 on a wide desktop to 1.6:1 on a phone, so the clip is padded out to a
-   *  wide canvas in the UI's own background colour and survives cover-cropping at
-   *  either end. It plays once and must run under five seconds — the card is a link,
-   *  so it cannot carry a pause control, and WCAG 2.2.2 requires one for motion that
-   *  starts on its own and lasts longer. `hero` stays the still everywhere else. */
+   *  hero. It opens on the hero still, moves into motion, and returns to the still, so
+   *  the card's resting state is the hero either way. Its poster should be the hero
+   *  still itself and the clip should share its shape: the browser then cover-crops the
+   *  first and last frames exactly as it crops the still, at every card width.
+   *
+   *  It plays once and must run under five seconds. The card is a link, so it cannot
+   *  carry a pause control, and WCAG 2.2.2 requires one for motion that starts on its
+   *  own and lasts longer. `hero` stays the still everywhere else. */
   heroClip: Clip.optional(),
   /** 3–6 curated stills. Not a dump of every screen: a project needing twenty is a
    *  signal to curate, and the gallery is sized for four. No completeness requirement. */

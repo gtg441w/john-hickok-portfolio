@@ -21,19 +21,29 @@ type ArtifactCardProps = {
  * bleeding to three edges, no ink over it — so the composition it enforces is the same
  * one, with a moving still in it.
  *
+ * IT STARTS AND ENDS ON THE HERO STILL. The poster is the hero still, and the clip is
+ * the same shape and opens and closes on the same image, so the browser crops the
+ * first and last frames exactly as it crops the still. The card looks like the hero
+ * before, after, and for anyone who never sees the motion.
+ *
  * It plays once and stops: autoplay, no loop, under five seconds. The card is a link,
  * so a pause button cannot live in it (a control inside a link is invalid), and
  * WCAG 2.2.2 requires one only for motion running longer than five seconds.
  *
- * REDUCED MOTION WITHOUT SCRIPT. The only <source> carries
- * media="(prefers-reduced-motion: no-preference)". A reader who asks for reduced motion
- * matches no source, so the element never loads video and shows its poster — the same
- * still, framed for the card — with no JavaScript deciding it.
+ * TWO CUTS, CHOSEN BY THE BROWSER. The card is a thin letterbox from 720px up and close
+ * to 16:9 below it, and one framing cannot keep the motion both uncropped on the
+ * first and readable on the second. The first matching <source> wins, so the narrow
+ * cut is listed first and scoped to narrow viewports.
+ *
+ * REDUCED MOTION WITHOUT SCRIPT. Every <source> requires
+ * (prefers-reduced-motion: no-preference). A reader who asks for reduced motion
+ * matches none, so no video loads and the poster — the hero still — stays.
  *
  * aria-hidden because the still version is a CSS background, which assistive tech
  * never sees: the card is named by its band text, and the media is decoration of a
  * link whose purpose that text already carries. */
 function ClipMedia({ clip }: { clip: Clip }) {
+  const motion = '(prefers-reduced-motion: no-preference)'
   return (
     <video
       data-artifact-media=""
@@ -45,14 +55,14 @@ function ClipMedia({ clip }: { clip: Clip }) {
       poster={clip.poster.src}
       aria-hidden="true"
     >
-      <source src={clip.src} type="video/mp4" media="(prefers-reduced-motion: no-preference)" />
+      {clip.narrowSrc && (
+        <source src={clip.narrowSrc} type="video/mp4" media={`${motion} and (max-width: 719px)`} />
+      )}
+      <source src={clip.src} type="video/mp4" media={motion} />
     </video>
   )
 }
 
-/* Exactly three elements — the structure is the contract (COMPONENT_INVENTORY.md).
- * Nothing may render inside [data-artifact-media]; the band declares no fill/filter
- * of its own — it's a window onto the card's own glass. */
 export default function ArtifactCard({
   href,
   title,
