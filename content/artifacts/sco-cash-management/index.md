@@ -7,37 +7,37 @@ framing: A cash pickup that advances when the machine senses what you did, not w
 readingTime: 6
 date: 2020-06-09
 hero:
-  src: media/status-screen-final.png
+  src: /artifacts/sco-cash-management/status-screen-final.png
   alt: "Cash Management status screen on a dark slate background. Cards for $1, $5, $10 and $20 notes and 1¢, 5¢, 10¢ and 25¢ coins each show a level bar, the current count and amount, and how many to add or remove; the $5 note and 25¢ coin cards carry red alert badges. Function buttons run down the right edge: Pick Up, Add via Note Loader, Add via Coin Chute, Remove Money, Empty Unit, Print Report, Exit, Lock Screen."
   width: 1920
   height: 1080
   chromeMode: dark
 gallery:
-  - src: media/legacy-status-screen.jpg
+  - src: /artifacts/sco-cash-management/legacy-status-screen.jpg
     alt: "The legacy Cash Management screen: a coins overview and note recyclers as small grey tiles, with function buttons on the right for Dispense Functions, Reset Functions and Note Box Transfers, and a greyed-out Apply Changes, Cancel Changes and numeric keypad."
     width: 1444
     height: 1080
     caption: "Before. Cash levels read as small grey tiles, and the work sat behind dispense, reset and transfer menus."
     chromeMode: light
-  - src: media/exploration-four-cash-level-views.png
+  - src: /artifacts/sco-cash-management/exploration-four-cash-level-views.png
     alt: "Four explored designs for the cash status screen, shown two by two and labelled: circular gauges, bars against a baseline, overlaid columns, and tile cards with a level bar. Each shows the same eight denominations and the same function list."
     width: 2000
     height: 1250
     caption: "Four ways to show how much of each denomination is left. The tile card, with a level bar on one side and an add-or-remove instruction on the other, is what carried through."
     chromeMode: light
-  - src: media/pickup-event-sequence.png
+  - src: /artifacts/sco-cash-management/pickup-event-sequence.png
     alt: "A diagram of the pickup flow. Seven screens run left to right: open the unit door, remove note box, empty the note box and re-insert it, remove the coin box, empty the coin box and re-insert it, close the unit when finished, and updating unit with every level re-checked. Below them, six sensed events advance the screens: door opened, note box removed, note box inserted, coin box removed, coin box inserted, door closed."
     width: 2400
     height: 760
     caption: "A pickup, end to end. The employee never taps to advance; each screen moves when the unit senses the step completed."
     chromeMode: light
-  - src: media/help-modal.png
+  - src: /artifacts/sco-cash-management/help-modal.png
     alt: "The cash status screen dimmed behind a Help dialog. The dialog shows one denomination card with labelled callouts: bill, coin or note; add/remove indicator; alert notification; current count and amount; add/remove amount."
     width: 1046
     height: 585
     caption: "The card key added after round one, where only 4 of 10 participants read the remove count correctly. With it, all 10 did."
     chromeMode: dark
-  - src: media/note-loader-instructions.jpg
+  - src: /artifacts/sco-cash-management/note-loader-instructions.jpg
     alt: "Instruction screen titled Loading the note loader: three hardware illustrations on the left and four steps on the right, covering opening and removing any $1 notes, loading large notes first, loading $1 notes on top, and stacking notes neatly."
     width: 1920
     height: 1080

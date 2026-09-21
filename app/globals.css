@@ -41,3 +41,93 @@
 .light .backdrop[data-stage-generative] {
   background-color: #f3f3ff;
 }
+
+/* ── Artifact prose ────────────────────────────────────────────────────────────
+ * The one place the site renders authored markdown, so the element selectors are
+ * scoped to this class rather than set on bare h2/p/table — a global `table { … }`
+ * would reach into the Experience screen and anything else built later.
+ *
+ * Colour comes from --glass-text / --glass-text-muted, never a literal: this block
+ * sits on a glass panel whose ink roles invert with chrome mode, and hardcoding
+ * rgba() here is the documented way to break light mode silently (CLAUDE.md, on
+ * SiteHeader's washes). Measure is capped at 68ch for prose and left unbounded for
+ * the table, which needs the width it needs. */
+.artifact-prose {
+  color: var(--glass-text);
+  font-size: 16px;
+  line-height: 1.62;
+}
+
+.artifact-prose > * {
+  max-width: 68ch;
+}
+
+.artifact-prose > *:first-child { margin-top: 0; }
+.artifact-prose > *:last-child { margin-bottom: 0; }
+
+.artifact-prose h2 {
+  font-family: var(--font-display);
+  font-size: clamp(21px, 2.1vw, 27px);
+  line-height: 1.12;
+  letter-spacing: -.02em;
+  font-weight: 600;
+  margin: 2.1em 0 .55em;
+}
+
+.artifact-prose h3 {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 1.7em 0 .4em;
+}
+
+.artifact-prose p,
+.artifact-prose ul,
+.artifact-prose ol {
+  margin: 0 0 1.05em;
+}
+
+.artifact-prose ul,
+.artifact-prose ol { padding-left: 1.3em; }
+.artifact-prose li { margin-bottom: .4em; }
+
+.artifact-prose strong { font-weight: 600; }
+
+.artifact-prose blockquote {
+  margin: 1.3em 0;
+  padding-left: 1.1em;
+  border-left: 2px solid var(--glass-edge);
+  color: var(--glass-text-muted);
+  font-style: italic;
+}
+
+/* Tables carry the test results, so they have to stay readable at phone width.
+ * The wrapper scrolls rather than letting the table force a horizontal scrollbar
+ * on the whole page. */
+.artifact-prose table {
+  max-width: 100%;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.3em 0;
+  font-size: 14px;
+  display: block;
+  overflow-x: auto;
+}
+
+.artifact-prose th,
+.artifact-prose td {
+  text-align: left;
+  padding: 8px 14px 8px 0;
+  border-bottom: 1px solid var(--glass-edge);
+  vertical-align: top;
+}
+
+.artifact-prose th {
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--glass-text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.artifact-prose td:not(:first-child) { white-space: nowrap; }

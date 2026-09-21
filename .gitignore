@@ -38,3 +38,6 @@ content/source/
 # instead. content/resume/ is where a future real download PDF gets generated
 # from; that PDF is the intended public artifact, not this source.
 content/resume/
+
+# Local dev launcher — machine-specific absolute paths, not shared state.
+.claude/
