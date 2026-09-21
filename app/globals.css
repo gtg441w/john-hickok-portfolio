@@ -123,6 +123,45 @@
 
 .artifact-prose td:not(:first-child) { white-space: nowrap; }
 
+/* ── Home mark ─────────────────────────────────────────────────────────────────
+ * The wordmark in the site header, which is also the link home. Styled as the mark
+ * rather than as a link: no underline, same ink as before. The affordance is the
+ * cursor, a slight fade on hover, and the focus ring — enough to be discoverable
+ * without making the logo look like a nav item.
+ *
+ * justify-self keeps the link the width of the mark inside its grid slot, so the hit
+ * area ends where the name ends. */
+.home-mark {
+  justify-self: start;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: -.015em;
+  line-height: 1.1;
+  color: var(--glass-text);
+  text-decoration: none;
+  border-radius: 6px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  transition: opacity 180ms cubic-bezier(.2, .6, .2, 1);
+}
+
+.home-mark:hover { opacity: .72; }
+
+/* Not a .glass surface, so the system's ring does not switch on by itself — the same
+ * tokens, composed directly. The transparent outline is the ring under forced-colors,
+ * where box-shadow is stripped. */
+.home-mark:focus-visible {
+  outline: 2px solid transparent;
+  box-shadow:
+    0 0 0 var(--focus-width-inner) var(--focus-inner),
+    0 0 0 var(--focus-width-outer) var(--focus-outer);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-mark { transition: none; }
+}
+
 /* ── Visually hidden ───────────────────────────────────────────────────────────
  * Text for assistive tech only. clip-path rather than display:none, which would
  * remove it from the accessibility tree as well. */

@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import NavLink from './NavLink'
 import ThemeToggle from './ThemeToggle'
 
@@ -13,18 +14,18 @@ export default function SiteHeader() {
       }}
     >
       <div style={{ flex: '1 1 0', minWidth: 0, display: 'grid', gap: 4, padding: '4px 0' }}>
-        <span
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontWeight: 600,
-            fontSize: 20,
-            letterSpacing: '-.015em',
-            color: 'var(--glass-text)',
-            lineHeight: 1.1,
-          }}
-        >
+        {/* The mark is the way home — the site's only home control, by convention
+          * rather than an icon. The link is sized to the mark, not to this flex slot,
+          * so clicking the empty header space beside it does nothing.
+          *
+          * WHEN THE LOGO ARRIVES: replace the text inside the link with the image or
+          * SVG and give it alt="John Hickok". Keep the aria-label on the link — it is
+          * what tells a screen reader this is the way home, which a logo alone does
+          * not say. It starts with the visible name on purpose (WCAG 2.5.3, label in
+          * name), so a voice-control user can still say "click John Hickok". */}
+        <Link href="/" className="home-mark" aria-label="John Hickok, home">
           John Hickok
-        </span>
+        </Link>
       </div>
 
       <div
