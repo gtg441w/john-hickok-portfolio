@@ -140,22 +140,24 @@
   line-height: 1.1;
   color: var(--glass-text);
   text-decoration: none;
-  border-radius: 6px;
-  padding: 2px 4px;
-  margin: -2px -4px;
   transition: opacity 180ms cubic-bezier(.2, .6, .2, 1);
 }
 
 .home-mark:hover { opacity: .72; }
 
-/* Not a .glass surface, so the system's ring does not switch on by itself — the same
- * tokens, composed directly. The transparent outline is the ring under forced-colors,
- * where box-shadow is stripped. */
+/* KEYBOARD FOCUS IS AN UNDERLINE, NOT THE SYSTEM RING. The two-tone ring drawn around
+ * a padded wordmark reads as a button outline with a drop shadow, which is wrong for
+ * a logo. It is not removed: a keyboard user still has to see where focus is, and
+ * CLAUDE.md treats a visible focus state as part of the contract. An underline in the
+ * mark's own ink is visible in both chrome modes and does not turn the logo into a
+ * button. The transparent outline is there for forced-colors, where it is repainted
+ * in a system colour. */
 .home-mark:focus-visible {
   outline: 2px solid transparent;
-  box-shadow:
-    0 0 0 var(--focus-width-inner) var(--focus-inner),
-    0 0 0 var(--focus-width-outer) var(--focus-outer);
+  outline-offset: 4px;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 5px;
 }
 
 @media (prefers-reduced-motion: reduce) {
