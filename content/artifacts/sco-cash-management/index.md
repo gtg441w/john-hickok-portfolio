@@ -45,7 +45,7 @@ gallery:
     chromeMode: light
 related: []
 applies: []
-featured: false
+featured: true
 published: true
 placeholder: false
 ---

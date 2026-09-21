@@ -2,6 +2,7 @@ import type { Still } from '@/lib/content.schema'
 import ArtifactCard from '@/components/artifact/ArtifactCard'
 import Rail from '@/components/artifact/Rail'
 import FrameworkCard from '@/components/framework/FrameworkCard'
+import { getPublishedArtifacts, kindLine, metaLine } from '@/lib/content'
 
 function still(src: string, width: number, height: number): Still {
   return { src, alt: '', width, height, chromeMode: 'dark', scrimStrength: 0.62 }
@@ -14,17 +15,41 @@ const frameworks = [
   { title: '[Framework 04]', subtitle: '[Framework 04 — one line.]' },
 ]
 
-/* Aloha Smart Manager is deliberately not here — held out of the collection
- * pending review (Gate 0, docs/BUILD_PLAN.md). Don't add it back without
- * revisiting that decision. */
-const projects = [
+/* Projects with no artifact written yet. These are bracket-holes wearing real
+ * titles: the image is a handoff stand-in (CLAUDE.md, Imagery — nothing about its
+ * subject or crop is a decision) and the card links to the collection rather than
+ * to a page that does not exist.
+ *
+ * This list only ever shrinks. The moment content/artifacts/<slug>/index.md lands
+ * with published: true, the artifact renders itself from its own frontmatter above
+ * these, so the only edit needed here is deleting the line.
+ *
+ * Aloha Smart Manager is included: it was held out pending review and John cleared
+ * it on 2026-09-20 (Gate 0, docs/BUILD_PLAN.md). Removing it again is a one-line
+ * deletion, which is the point — there is more finished work than there are slots. */
+const pendingProjects = [
   { title: 'Fresco', src: '/media/artifact-movie-box.png', w: 752, h: 588 },
-  { title: 'Cash Management', src: '/media/artifact-retreat-site.png', w: 900, h: 579 },
   { title: 'ITM', src: '/media/artifact-weather-glass.png', w: 1200, h: 844 },
-  { title: '[Project 04]', src: '/media/artifact-voice-app.png', w: 2048, h: 1536 },
+  { title: 'Aloha Smart Manager', src: '/media/artifact-voice-app.png', w: 2048, h: 1536 },
 ]
 
+/* The hero before anything is published. Not a fallback for an error — it is the
+ * honest state of a collection with nothing in it yet, and it kept the homepage
+ * standing for the whole stretch before the first artifact existed. */
+const placeholderHero = {
+  title: 'Fresco',
+  kind: 'Project · NCR Voyix',
+  framing: '[Framing line — the problem this solved and why it mattered, in one sentence.]',
+  meta: '18 min · applies Altitude',
+  still: still('/media/artifact-smart-home.avif', 1024, 768),
+}
+
 export default function HomePage() {
+  /* The most recent published artifact takes the hero; the rest fall into the rail
+   * ahead of the not-yet-written ones. Ordering is by date, from the loader, so the
+   * hero changes by writing an artifact rather than by editing this file. */
+  const [heroArtifact, ...railArtifacts] = getPublishedArtifacts()
+
   return (
     <main>
       <div style={{ display: 'grid', gap: 32, padding: 'clamp(16px,3vw,32px)', maxWidth: 1180, margin: '0 auto' }}>
@@ -44,16 +69,20 @@ export default function HomePage() {
           </span>
         </span>
 
-        <ArtifactCard
-          href="/work/fresco"
-          size="lg"
-          featured
-          title="Fresco"
-          kind="Project · NCR Voyix"
-          framing="[Framing line — the problem this solved and why it mattered, in one sentence.]"
-          meta="18 min · applies Altitude"
-          still={still('/media/artifact-smart-home.avif', 1024, 768)}
-        />
+        {heroArtifact ? (
+          <ArtifactCard
+            href={`/work/${heroArtifact.slug}`}
+            size="lg"
+            featured={heroArtifact.featured}
+            title={heroArtifact.title}
+            kind={kindLine(heroArtifact)}
+            framing={heroArtifact.framing}
+            meta={metaLine(heroArtifact)}
+            still={heroArtifact.hero}
+          />
+        ) : (
+          <ArtifactCard href="/work" size="lg" featured {...placeholderHero} />
+        )}
 
         <Rail title="Frameworks" caption="rail · numbered spine · top of the hierarchy" minColumnWidth={210}>
           {frameworks.map((fw, i) => (
@@ -62,7 +91,17 @@ export default function HomePage() {
         </Rail>
 
         <Rail title="Projects" caption="rail · horizontal · snap · C3 standard at rail scale" minColumnWidth={248}>
-          {projects.map((p) => (
+          {railArtifacts.map((a) => (
+            <ArtifactCard
+              key={a.slug}
+              href={`/work/${a.slug}`}
+              size="sm"
+              title={a.title}
+              kind={kindLine(a)}
+              still={a.hero}
+            />
+          ))}
+          {pendingProjects.map((p) => (
             <ArtifactCard
               key={p.title}
               href="/work"

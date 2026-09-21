@@ -14,12 +14,15 @@ See `COMPONENT_INVENTORY.md`, `content.schema.ts`, `conformance.spec.ts`.
 
 All three Gate 0 questions are now resolved.
 
-**Resolved: permission to publish.** Fresco, Cash Management and ITM are cleared to
-publish with real screenshots — `published: true` in their frontmatter, step 3 writes
-them against real stills. **Aloha Smart Manager is held out of the collection for
-now** — not `published: false` as a permanent no, but genuinely undecided pending
-review. Don't draft its case study in step 3 and don't add it to any rail or the
-collection grid until this is revisited.
+**Resolved: permission to publish.** Fresco, Cash Management, ITM and Aloha Smart
+Manager are cleared to publish with real screenshots — `published: true` in their
+frontmatter, step 3 writes them against real stills.
+
+Aloha Smart Manager was previously held out pending review; John cleared it on
+2026-09-20. The reasoning is worth keeping, because it is what makes the decision
+cheap to reverse: there is more finished work than there are slots, so if clearance
+turns out to be a problem, ASM comes out and something else takes its place. Removing
+it costs a slot, not a gap.
 
 **Resolved: the generative backdrop.** Shipped, but not VANTA/three.js — a
 dependency-free 2D canvas "net" effect (`components/backdrop/BackdropSlot.tsx`),
