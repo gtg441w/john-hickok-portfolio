@@ -52,6 +52,8 @@ placeholder: false
 
 ## Problem
 
+![](/artifacts/sco-cash-management/legacy-status-screen.jpg)
+
 Self-checkout units hold cash that has to be added, removed and kept in balance: change for customers, large bills, cash back, and no more cash sitting in the unit than necessary. Running out is bad, and so is holding too much.
 
 The people doing that work stood between two things, the screen above and the hardware below (note loader, coin chute, cash box), moving back and forth while handling cash and driving the interface. The existing flow made them confirm their way through every step. The remove-cash flow I inherited split into dispense, reset and note-box-transfer branches, each ending in apply, cancel or confirm steps.
@@ -64,6 +66,8 @@ I was the project lead and UX architect, working with a UX researcher and a UX d
 
 ## The decision
 
+![](/artifacts/sco-cash-management/pickup-event-sequence.png)
+
 The pickup and restock flows stopped asking the employee to tell the software what the hardware already knew. The note feeder on the outside of the unit has a sensor: when something is fed in, it ingests it, reads it, and sorts it as currency or rejects it. The flow advances on that event. It supports every note a merchant configures, across currencies.
 
 Not every screen carried a "Next" button. Where an event was programmed and dependable, the screen had no Next at all: the only way forward was to do the work. Where it wasn't, Next stayed at the bottom as a redundant path, so nobody could be stranded by a trigger that failed to register. Which screens got one was a judgment about the reliability of a specific sensor, not a global pattern.
@@ -75,6 +79,8 @@ The same idea applied to a second kind of flow that never opens the unit. For a 
 Finding those events was the method, not a one-off. I annotated every "Next" and "Done" in the flow with a single question: could this be automated? We worked with engineering to find which hardware triggers were already available, and used them to cut the number of times an employee had to touch the unit at all, so the task in their hands could stay the task in front of them.
 
 ## Reasoning
+
+![](/artifacts/sco-cash-management/note-loader-instructions.jpg)
 
 The screen and the hardware are two places, and the job needs both hands. Every tap that only confirms something the machine already sensed is a trip back to the screen, made by someone holding cash.
 
@@ -93,6 +99,9 @@ The status screen was tested, twice, and the numbers are below. The event-driven
 I moved to another project before rollout, so there is no field data on pickup time, training time or error rates.
 
 ## Validation
+
+![](/artifacts/sco-cash-management/exploration-four-cash-level-views.png)
+![](/artifacts/sco-cash-management/help-modal.png)
 
 The cash-level display went through A/B rounds first, testing two things: which presentation people preferred, and how well each let them read the state of the machine. The legacy screen was the control, against four ways of showing how much of each denomination was left: circular gauges, bars against a baseline, overlaid columns, and tile cards. The tile card, with its level bar on one side and its add-or-remove instruction on the other, is what carried through to the final design.
 

@@ -13,7 +13,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import matter from 'gray-matter'
-import { Artifact } from './content.schema'
+import { Artifact, type Still } from './content.schema'
 
 const ARTIFACTS_DIR = path.join(process.cwd(), 'content', 'artifacts')
 
@@ -75,6 +75,89 @@ export function getArtifact(slug: string): LoadedArtifact | null {
  *  unlisted-but-reachable URL cannot exist. */
 export function getPublishedSlugs(): string[] {
   return getPublishedArtifacts().map(a => a.slug)
+}
+
+/* ── Sections ─────────────────────────────────────────────────────────────────
+   The reading view renders the body as one card per `## ` heading, each with its
+   own stills beside it.
+
+   WHERE THE PAIRING IS AUTHORED. A still belongs to a section because the section
+   says so, as an ordinary markdown image on its own line:
+
+       ## The decision
+       ![](/artifacts/sco-cash-management/pickup-event-sequence.png)
+
+   The line is only a reference. Everything the page needs to render the image —
+   intrinsic width and height, alt, caption — comes from the matching entry in the
+   validated `gallery` frontmatter, matched by src. That keeps the schema untouched
+   (it is shared with other artifacts in progress) and keeps the metadata where Zod
+   can check it, rather than in markdown where a missing width would surface as
+   layout shift on a glass page instead of as a failed build.
+
+   A reference to a src that is not in the gallery throws, for the same reason the
+   loader throws on bad frontmatter: an image with no intrinsic dimensions is a
+   defect, and the build is the cheapest place to find it. */
+
+export type ArtifactSection = {
+  id: string
+  heading: string
+  /** Markdown with the still-reference lines removed. Rendered by the page. */
+  markdown: string
+  stills: Still[]
+}
+
+const STILL_REF = /^!\[[^\]]*\]\(([^)\s]+)\)\s*$/
+
+function slugify(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+}
+
+export function getSections(artifact: LoadedArtifact): {
+  sections: ArtifactSection[]
+  /** Gallery stills no section referenced. Rendered after the sections, so a still
+   *  that was never placed is shown rather than silently dropped. */
+  unplaced: Still[]
+} {
+  const bySrc = new Map(artifact.gallery.map(s => [s.src, s]))
+  const placed = new Set<string>()
+
+  /* Split on level-2 headings only. Anything before the first heading has no card
+   * to live in, so it is kept as an untitled lead section rather than lost. */
+  const chunks = artifact.body.split(/^## /m)
+  const sections: ArtifactSection[] = []
+
+  chunks.forEach((chunk, i) => {
+    if (!chunk.trim()) return
+    const isLead = i === 0
+    const newline = chunk.indexOf('\n')
+    const heading = isLead ? '' : (newline === -1 ? chunk : chunk.slice(0, newline)).trim()
+    const rest = isLead ? chunk : newline === -1 ? '' : chunk.slice(newline + 1)
+
+    const stills: Still[] = []
+    const markdown = rest
+      .split('\n')
+      .filter(line => {
+        const m = line.match(STILL_REF)
+        if (!m) return true
+        const still = bySrc.get(m[1])
+        if (!still) {
+          throw new Error(
+            `content/artifacts/${artifact.slug}/index.md: section "${heading || '(lead)'}" ` +
+              `references ${m[1]}, which is not in the gallery frontmatter. Add it there ` +
+              `with width, height and alt, or remove the reference.`
+          )
+        }
+        stills.push(still)
+        placed.add(still.src)
+        return false
+      })
+      .join('\n')
+      .trim()
+
+    sections.push({ id: isLead ? 'lead' : slugify(heading), heading, markdown, stills })
+  })
+
+  return { sections, unplaced: artifact.gallery.filter(s => !placed.has(s.src)) }
 }
 
 /** "Project · NCR Voyix" — the card's kind line. */

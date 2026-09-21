@@ -65,15 +65,6 @@
 .artifact-prose > *:first-child { margin-top: 0; }
 .artifact-prose > *:last-child { margin-bottom: 0; }
 
-.artifact-prose h2 {
-  font-family: var(--font-display);
-  font-size: clamp(21px, 2.1vw, 27px);
-  line-height: 1.12;
-  letter-spacing: -.02em;
-  font-weight: 600;
-  margin: 2.1em 0 .55em;
-}
-
 .artifact-prose h3 {
   font-size: 17px;
   font-weight: 600;
@@ -131,3 +122,158 @@
 }
 
 .artifact-prose td:not(:first-child) { white-space: nowrap; }
+
+/* ── Visually hidden ───────────────────────────────────────────────────────────
+ * Text for assistive tech only. clip-path rather than display:none, which would
+ * remove it from the accessibility tree as well. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Artifact sections ─────────────────────────────────────────────────────────
+ * One expandable glass card per `## ` heading of an artifact's body.
+ * components/artifact/ArtifactSection.tsx carries the reasoning; this is the layout.
+ *
+ * Three layouts, chosen by the component from the section's own stills:
+ *   text  no stills: the text alone.
+ *   side  stills beside the text, text left and stills right, from 720px up.
+ *   wide  a still too wide for a column (a long diagram): full width, above the text.
+ * Below 720px every layout stacks heading, stills, text — the DOM order, unchanged.
+ * 720px is the system's own break (tokens/space.css), not a new one. */
+.artifact-section {
+  border-radius: var(--radius-lg, 24px);
+  overflow: hidden;
+  /* The focus ring's composition, built from the system's own --focus-* tokens so it
+   * tracks any change to them. It has to be restated here because the system keeps
+   * the value inside `.glass:focus-visible` (tokens/semantic.css) rather than in a
+   * reusable token, and neither element that takes focus below is itself .glass. */
+  --section-focus-ring:
+    0 0 0 var(--focus-width-inner) var(--focus-inner),
+    0 0 0 var(--focus-width-outer) var(--focus-outer);
+}
+
+/* FOCUS RINGS THE CARD, THE SYSTEM'S WAY. The design system paints a glass surface's
+ * focus ring in that surface's own box-shadow, switched on by `.glass:focus-visible`.
+ * Here the <details> is the glass but the <summary> inside it takes focus, so that
+ * selector never matches and the ring stays at its transparent default. Setting the
+ * variable on the card when its summary is focused hands the ring back to the card's
+ * own box-shadow — the same ring, in the same place, as a focused ArtifactCard.
+ * :has() and not :focus-within, which would also ring the whole card when focus is
+ * on one of the image links inside it. */
+.artifact-section:has(> .artifact-section__summary:focus-visible) {
+  --glass-focus-ring: var(--section-focus-ring);
+}
+
+.artifact-section__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(18px, 2.4vw, 26px) clamp(20px, 3vw, 36px);
+  cursor: pointer;
+  list-style: none;
+  border-radius: var(--radius-lg, 24px);
+}
+
+.artifact-section__summary::-webkit-details-marker { display: none; }
+
+/* Forced-colors strips box-shadow, which takes the card's ring with it. A transparent
+ * outline is invisible normally and is repainted in a system colour under
+ * forced-colors, so it becomes the ring there. Only on focus: set unconditionally it
+ * would outline every summary in high-contrast mode. */
+.artifact-section__summary:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+}
+
+.artifact-section__summary h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(21px, 2.1vw, 27px);
+  line-height: 1.12;
+  letter-spacing: -.02em;
+  font-weight: 600;
+  color: var(--glass-text);
+}
+
+/* A chevron drawn with borders, so it takes currentColor and inverts with chrome
+ * mode rather than needing an asset per theme. Points down when collapsed, up when
+ * open. */
+.artifact-section__chevron {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-right: 4px;
+  border-right: 2px solid var(--glass-text-muted);
+  border-bottom: 2px solid var(--glass-text-muted);
+  transform: translateY(-3px) rotate(45deg);
+  transition: transform 180ms cubic-bezier(.2, .6, .2, 1);
+}
+
+.artifact-section[open] .artifact-section__chevron {
+  transform: translateY(3px) rotate(-135deg);
+}
+
+.artifact-section__body {
+  display: grid;
+  gap: clamp(20px, 2.6vw, 32px);
+  padding: 0 clamp(20px, 3vw, 36px) clamp(22px, 3vw, 36px);
+}
+
+.artifact-section__media {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+.artifact-section__figure {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.artifact-section__zoom {
+  display: block;
+  border-radius: var(--radius-md, 16px);
+}
+
+.artifact-section__zoom:focus-visible {
+  box-shadow: var(--section-focus-ring);
+  outline: 2px solid transparent;
+}
+
+.artifact-section__figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md, 16px);
+  border: 1px solid var(--glass-edge);
+}
+
+.artifact-section__figure figcaption {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--glass-text-muted);
+}
+
+@media (min-width: 720px) {
+  /* Text keeps ~60% of the card, which lands the prose at ~68 characters per line at
+   * the reading view's full width. grid-area places the stills right without
+   * reordering the DOM. */
+  .artifact-section__body[data-layout="side"] {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-areas: "text media";
+    align-items: start;
+  }
+  .artifact-section__body[data-layout="side"] .artifact-section__text { grid-area: text; }
+  .artifact-section__body[data-layout="side"] .artifact-section__media { grid-area: media; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .artifact-section__chevron { transition: none; }
+}

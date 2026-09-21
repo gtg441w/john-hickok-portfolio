@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { marked } from 'marked'
 
-import { getArtifact, getPublishedSlugs, kindLine, metaLine } from '@/lib/content'
+import { getArtifact, getPublishedSlugs, getSections, kindLine, metaLine } from '@/lib/content'
+import ArtifactSection from '@/components/artifact/ArtifactSection'
 import Gallery from '@/components/artifact/Gallery'
 
 /* Static per slug. Unpublished artifacts are absent from this list AND rejected by
@@ -40,11 +40,7 @@ export default async function ArtifactPage({ params }: { params: Promise<{ slug:
   if (!artifact || !artifact.published) notFound()
 
   const meta = metaLine(artifact)
-
-  /* The body is authored markdown in this repo, written by the site's one author and
-   * reviewed in a commit. It is not user input, so rendering it as HTML is not an
-   * injection surface — if that ever stops being true, sanitize here. */
-  const html = await marked.parse(artifact.body)
+  const { sections, unplaced } = getSections(artifact)
 
   return (
     <main>
@@ -124,14 +120,18 @@ export default async function ArtifactPage({ params }: { params: Promise<{ slug:
           }}
         />
 
-        <div
-          className="glass artifact-prose"
-          data-glass-level="panel"
-          style={{ padding: 'clamp(20px,3vw,40px)', borderRadius: 'var(--radius-lg, 24px)' }}
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
+        {/* Sibling glass cards, never nested: .glass .glass drops its filter by design,
+          * so wrapping these in a glass panel would silently flatten all of them. */}
+        <div style={{ display: 'grid', gap: 16 }}>
+          {sections.map(s => (
+            <ArtifactSection key={s.id} section={s} />
+          ))}
+        </div>
 
-        {artifact.gallery.length > 0 && (
+        {/* Stills the author never placed in a section. Empty when every still is
+          * placed, which is the intent; present so an unplaced one is visible rather
+          * than lost. */}
+        {unplaced.length > 0 && (
           <section style={{ display: 'grid', gap: 24 }}>
             <h2
               style={{
@@ -145,7 +145,7 @@ export default async function ArtifactPage({ params }: { params: Promise<{ slug:
             >
               Gallery
             </h2>
-            <Gallery stills={artifact.gallery} />
+            <Gallery stills={unplaced} />
           </section>
         )}
       </article>
