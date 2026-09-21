@@ -43,6 +43,15 @@ gallery:
     height: 1080
     caption: "The physical step guided on screen, so the instruction sits where the hands are."
     chromeMode: light
+clips:
+  - src: /artifacts/sco-cash-management/pickup-sequence.mp4
+    caption: "The prototype running a full pickup. Each screen advances on its own when the unit senses the step is done; nothing is tapped."
+    poster:
+      src: /artifacts/sco-cash-management/pickup-sequence-poster.jpg
+      alt: "A silent recording of the pickup flow on the self-checkout screen, advancing without any taps: open the unit door, remove the note box, empty it and re-insert it, remove the coin box, empty it and re-insert it, close the unit, a brief resetting-counts screen, then the updated Cash Management status screen. The still frame is the first step, Open the unit door."
+      width: 1920
+      height: 936
+      chromeMode: dark
 related: []
 applies: []
 featured: true
@@ -67,6 +76,7 @@ I was the project lead and UX architect, working with a UX researcher and a UX d
 ## The decision
 
 ![](/artifacts/sco-cash-management/pickup-event-sequence.png)
+![](/artifacts/sco-cash-management/pickup-sequence.mp4)
 
 The pickup and restock flows stopped asking the employee to tell the software what the hardware already knew. The note feeder on the outside of the unit has a sensor: when something is fed in, it ingests it, reads it, and sorts it as currency or rejects it. The flow advances on that event. It supports every note a merchant configures, across currencies.
 

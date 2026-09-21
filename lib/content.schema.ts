@@ -47,6 +47,29 @@ export const Still = z.object({
 })
 export type Still = z.infer<typeof Still>
 
+/* ── Clip ─────────────────────────────────────────────────────────────────────
+   A short, silent video. Named as the moving counterpart to Still.
+
+   THE POSTER IS A FULL STILL, and that is the design, not a convenience. Every case
+   where the video does not play falls back to one image: a reader who prefers
+   reduced motion, a slow connection, no script, a surface that only takes images.
+   Making it a Still gives that fallback everything the glass contract and the image
+   rules already demand — intrinsic width and height (the video's box is reserved
+   from them, so nothing shifts when it loads), alt, and chromeMode.
+
+   The poster's alt doubles as the clip's text alternative. A clip carries no audio
+   track, which makes it video-only content (WCAG 1.2.1): the alt should describe
+   what happens across the clip, not only the frame it shows.
+
+   Encode small: H.264 MP4, no audio track, moov before mdat. Clips live in a public
+   git repo, where a binary never shrinks once committed. */
+export const Clip = z.object({
+  src: z.string().regex(/\.mp4$/, 'clips are H.264 MP4 — the one format every current browser plays'),
+  poster: Still,
+  caption: z.string().optional()
+})
+export type Clip = z.infer<typeof Clip>
+
 /* ── Artifact ─────────────────────────────────────────────────────────────────
    Projects, frameworks and writing are one kind. The site's organising metaphor is a
    museum: artifacts live in a collection and relate across categories rather than
@@ -68,6 +91,9 @@ export const Artifact = z.object({
   /** 3–6 curated stills. Not a dump of every screen: a project needing twenty is a
    *  signal to curate, and the gallery is sized for four. No completeness requirement. */
   gallery: z.array(Still).max(12).default([]),
+  /** Short silent videos, placed in sections the same way stills are. Optional and
+   *  empty by default, so frontmatter written before this field existed stays valid. */
+  clips: z.array(Clip).max(6).default([]),
   /** Cross-category relationships. Slugs, resolved at build time so a dangling
    *  reference is a failed build rather than a dead link. */
   related: z.array(z.string()).default([]),

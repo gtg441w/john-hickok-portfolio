@@ -180,11 +180,12 @@
  * One expandable glass card per `## ` heading of an artifact's body.
  * components/artifact/ArtifactSection.tsx carries the reasoning; this is the layout.
  *
- * Three layouts, chosen by the component from the section's own stills:
- *   text  no stills: the text alone.
- *   side  stills beside the text, text left and stills right, from 720px up.
- *   wide  a still too wide for a column (a long diagram): full width, above the text.
- * Below 720px every layout stacks heading, stills, text — the DOM order, unchanged.
+ * Three layouts, chosen by the component from the section's own media:
+ *   text  no media: the text alone.
+ *   side  media beside the text, text left and media right, from 720px up.
+ *   wide  a still or clip too wide for a column (a long diagram): full width, above
+ *         the text.
+ * Below 720px every layout stacks heading, media, text — the DOM order, unchanged.
  * 720px is the system's own break (tokens/space.css), not a new one. */
 .artifact-section {
   border-radius: var(--radius-lg, 24px);
@@ -288,7 +289,8 @@
   outline: 2px solid transparent;
 }
 
-.artifact-section__figure img {
+.artifact-section__figure img,
+.artifact-section__figure video {
   display: block;
   width: 100%;
   height: auto;

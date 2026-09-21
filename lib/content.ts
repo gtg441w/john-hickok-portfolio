@@ -13,7 +13,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import matter from 'gray-matter'
-import { Artifact, type Still } from './content.schema'
+import { Artifact, type Clip, type Still } from './content.schema'
 
 const ARTIFACTS_DIR = path.join(process.cwd(), 'content', 'artifacts')
 
@@ -94,19 +94,30 @@ export function getPublishedSlugs(): string[] {
    can check it, rather than in markdown where a missing width would surface as
    layout shift on a glass page instead of as a failed build.
 
-   A reference to a src that is not in the gallery throws, for the same reason the
-   loader throws on bad frontmatter: an image with no intrinsic dimensions is a
-   defect, and the build is the cheapest place to find it. */
+   Clips are placed the same way: a reference line whose src matches an entry in
+   `clips`. A section's media keeps the order its lines are written in.
+
+   A reference to a src that is in neither list throws, for the same reason the loader
+   throws on bad frontmatter: media with no intrinsic dimensions is a defect, and the
+   build is the cheapest place to find it. */
+
+/** One placed piece of media. A clip's box and text alternative come from its poster. */
+export type Media = { kind: 'still'; still: Still } | { kind: 'clip'; clip: Clip }
+
+/** The frame a piece of media is sized and described by. */
+export function frameOf(m: Media): Still {
+  return m.kind === 'still' ? m.still : m.clip.poster
+}
 
 export type ArtifactSection = {
   id: string
   heading: string
-  /** Markdown with the still-reference lines removed. Rendered by the page. */
+  /** Markdown with the media-reference lines removed. Rendered by the page. */
   markdown: string
-  stills: Still[]
+  media: Media[]
 }
 
-const STILL_REF = /^!\[[^\]]*\]\(([^)\s]+)\)\s*$/
+const MEDIA_REF = /^!\[[^\]]*\]\(([^)\s]+)\)\s*$/
 
 function slugify(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -114,11 +125,16 @@ function slugify(s: string): string {
 
 export function getSections(artifact: LoadedArtifact): {
   sections: ArtifactSection[]
-  /** Gallery stills no section referenced. Rendered after the sections, so a still
+  /** Media no section referenced. Rendered after the sections, so a still or clip
    *  that was never placed is shown rather than silently dropped. */
-  unplaced: Still[]
+  unplaced: Media[]
 } {
-  const bySrc = new Map(artifact.gallery.map(s => [s.src, s]))
+  const all: Media[] = [
+    ...artifact.gallery.map(still => ({ kind: 'still' as const, still })),
+    ...artifact.clips.map(clip => ({ kind: 'clip' as const, clip })),
+  ]
+  const srcOf = (m: Media) => (m.kind === 'still' ? m.still.src : m.clip.src)
+  const bySrc = new Map(all.map(m => [srcOf(m), m]))
   const placed = new Set<string>()
 
   /* Split on level-2 headings only. Anything before the first heading has no card
@@ -133,31 +149,31 @@ export function getSections(artifact: LoadedArtifact): {
     const heading = isLead ? '' : (newline === -1 ? chunk : chunk.slice(0, newline)).trim()
     const rest = isLead ? chunk : newline === -1 ? '' : chunk.slice(newline + 1)
 
-    const stills: Still[] = []
+    const media: Media[] = []
     const markdown = rest
       .split('\n')
       .filter(line => {
-        const m = line.match(STILL_REF)
+        const m = line.match(MEDIA_REF)
         if (!m) return true
-        const still = bySrc.get(m[1])
-        if (!still) {
+        const item = bySrc.get(m[1])
+        if (!item) {
           throw new Error(
             `content/artifacts/${artifact.slug}/index.md: section "${heading || '(lead)'}" ` +
-              `references ${m[1]}, which is not in the gallery frontmatter. Add it there ` +
-              `with width, height and alt, or remove the reference.`
+              `references ${m[1]}, which is in neither the gallery nor the clips ` +
+              `frontmatter. Add it there with width, height and alt, or remove the reference.`
           )
         }
-        stills.push(still)
-        placed.add(still.src)
+        media.push(item)
+        placed.add(m[1])
         return false
       })
       .join('\n')
       .trim()
 
-    sections.push({ id: isLead ? 'lead' : slugify(heading), heading, markdown, stills })
+    sections.push({ id: isLead ? 'lead' : slugify(heading), heading, markdown, media })
   })
 
-  return { sections, unplaced: artifact.gallery.filter(s => !placed.has(s.src)) }
+  return { sections, unplaced: all.filter(m => !placed.has(srcOf(m))) }
 }
 
 /** "Project · NCR Voyix" — the card's kind line. */

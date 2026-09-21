@@ -2,8 +2,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
 import { getArtifact, getPublishedSlugs, getSections, kindLine, metaLine } from '@/lib/content'
-import ArtifactSection from '@/components/artifact/ArtifactSection'
-import Gallery from '@/components/artifact/Gallery'
+import ArtifactSection, { MediaFigure } from '@/components/artifact/ArtifactSection'
 
 /* Static per slug. Unpublished artifacts are absent from this list AND rejected by
  * the handler below, so "not in the collection" and "not reachable by URL" stay the
@@ -128,9 +127,9 @@ export default async function ArtifactPage({ params }: { params: Promise<{ slug:
           ))}
         </div>
 
-        {/* Stills the author never placed in a section. Empty when every still is
-          * placed, which is the intent; present so an unplaced one is visible rather
-          * than lost. */}
+        {/* Media the author never placed in a section. Empty when everything is
+          * placed, which is the intent; present so an unplaced still or clip is
+          * visible rather than lost. */}
         {unplaced.length > 0 && (
           <section style={{ display: 'grid', gap: 24 }}>
             <h2
@@ -145,7 +144,11 @@ export default async function ArtifactPage({ params }: { params: Promise<{ slug:
             >
               Gallery
             </h2>
-            <Gallery stills={unplaced} />
+            <div style={{ display: 'grid', gap: 40 }}>
+              {unplaced.map(m => (
+                <MediaFigure key={m.kind === 'still' ? m.still.src : m.clip.src} media={m} />
+              ))}
+            </div>
           </section>
         )}
       </article>

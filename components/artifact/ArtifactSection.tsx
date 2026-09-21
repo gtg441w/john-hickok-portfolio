@@ -1,8 +1,8 @@
 import { marked } from 'marked'
-import type { Still } from '@/lib/content.schema'
-import type { ArtifactSection as Section } from '@/lib/content'
+import type { Clip, Still } from '@/lib/content.schema'
+import { frameOf, type ArtifactSection as Section, type Media } from '@/lib/content'
 
-/* One section of an artifact as an expandable glass card, with its stills beside it.
+/* One section of an artifact as an expandable glass card, with its media beside it.
  *
  * NATIVE <details>, NOT A CLIENT COMPONENT. Expand and collapse, keyboard toggling
  * (Enter / Space on the summary) and the expanded state exposed to assistive tech all
@@ -10,8 +10,8 @@ import type { ArtifactSection as Section } from '@/lib/content'
  * component, which the minimal-islands rule in CLAUDE.md asks for, and it means the
  * content is in the HTML whether or not script ever runs.
  *
- * DOM ORDER IS THE MOBILE ORDER. Stills come before the text in source because the
- * narrow layout stacks heading → image → text. The wide layout moves the stills to
+ * DOM ORDER IS THE MOBILE ORDER. Media comes before the text in source because the
+ * narrow layout stacks heading → media → text. The wide layout moves the media to
  * the right column with grid-area; it does not reorder the DOM, so reading and tab
  * order match what the narrow layout shows.
  *
@@ -23,9 +23,9 @@ import type { ArtifactSection as Section } from '@/lib/content'
  * about 5px. Such a still takes the full card width instead, above the text. */
 const WIDE_ASPECT = 2.2
 
-function layoutFor(stills: Still[]): 'text' | 'side' | 'wide' {
-  if (!stills.length) return 'text'
-  return stills.some(s => s.width / s.height >= WIDE_ASPECT) ? 'wide' : 'side'
+function layoutFor(media: Media[]): 'text' | 'side' | 'wide' {
+  if (!media.length) return 'text'
+  return media.map(frameOf).some(f => f.width / f.height >= WIDE_ASPECT) ? 'wide' : 'side'
 }
 
 function Vignette({ still }: { still: Still }) {
@@ -50,6 +50,43 @@ function Vignette({ still }: { still: Still }) {
   )
 }
 
+/* A clip plays only when asked. Native controls, no autoplay and no script: nothing
+ * moves unless the reader starts it, which is what a reader who prefers reduced motion
+ * needs from content in the middle of an article (WCAG 2.2.2), and the poster holds
+ * the frame until then. preload="none" keeps the page from spending a megabyte on a
+ * clip nobody plays; width and height reserve its box from the poster, so it does not
+ * shift the text when it loads.
+ *
+ * The clip has no audio track, so muted changes nothing today; it is there so the
+ * element stays silent if a later edit ever adds a track or turns on autoplay. The
+ * poster's alt is the text alternative for what happens across the clip, not just
+ * the still frame. */
+function ClipFigure({ clip }: { clip: Clip }) {
+  const { poster } = clip
+  return (
+    <figure className="artifact-section__figure">
+      <video
+        controls
+        muted
+        loop
+        playsInline
+        preload="none"
+        poster={poster.src}
+        width={poster.width}
+        height={poster.height}
+        aria-label={poster.alt}
+      >
+        <source src={clip.src} type="video/mp4" />
+      </video>
+      {clip.caption && <figcaption>{clip.caption}</figcaption>}
+    </figure>
+  )
+}
+
+export function MediaFigure({ media }: { media: Media }) {
+  return media.kind === 'still' ? <Vignette still={media.still} /> : <ClipFigure clip={media.clip} />
+}
+
 export default async function ArtifactSection({
   section,
   defaultOpen = true,
@@ -58,14 +95,14 @@ export default async function ArtifactSection({
   defaultOpen?: boolean
 }) {
   const html = await marked.parse(section.markdown)
-  const layout = layoutFor(section.stills)
+  const layout = layoutFor(section.media)
 
   const body = (
     <div className="artifact-section__body" data-layout={layout}>
-      {section.stills.length > 0 && (
+      {section.media.length > 0 && (
         <div className="artifact-section__media">
-          {section.stills.map(s => (
-            <Vignette key={s.src} still={s} />
+          {section.media.map(m => (
+            <MediaFigure key={m.kind === 'still' ? m.still.src : m.clip.src} media={m} />
           ))}
         </div>
       )}
