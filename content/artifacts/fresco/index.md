@@ -8,44 +8,44 @@ framing: |
   packaging, and installation materials for a networked lighting control station.
 readingTime: 12
 hero:
-  src: /work/fresco/01-lights-interface.jpg
+  src: /artifacts/fresco/01-lights-interface.jpg
   alt: The Fresco lighting control interface showing six independent channels with percentage-based sliders and color adjustment tools.
   width: 800
   height: 480
   chromeMode: dark
   scrimStrength: 0.62
 gallery:
-  - src: /work/fresco/01-lights-interface.jpg
+  - src: /artifacts/fresco/01-lights-interface.jpg
     alt: The Fresco lighting control interface showing six independent channels with percentage-based sliders and color adjustment tools.
     width: 800
     height: 480
     caption: Core interface. Six channels with real-time percentage readouts and independent adjustment controls.
     chromeMode: dark
-  - src: /work/fresco/04-color-control.png
+  - src: /artifacts/fresco/04-color-control.png
     alt: Color control interface with RGB picker, color history, and preset favorite colors for lighting adjustment.
     width: 802
     height: 481
     caption: Color control layer. Tunable white and RGB support with history and favorites.
     chromeMode: dark
-  - src: /work/fresco/02-product-front.jpg
+  - src: /artifacts/fresco/02-product-front.jpg
     alt: The physical Fresco touchscreen enclosure showing white bezel and 7-inch display with Acuity Controls branding.
     width: 1223
     height: 788
     caption: Physical product. 7-inch touchscreen enclosure designed for wall or desktop mounting.
     chromeMode: light
-  - src: /work/fresco/03-demo-case.jpg
+  - src: /artifacts/fresco/03-demo-case.jpg
     alt: The Fresco demo case showing the complete physical assembly with cable management and internal wiring.
     width: 1280
     height: 919
     caption: Demo case. 3D-modeled and engineered physical demonstration unit for trade shows and testing.
     chromeMode: light
-  - src: /work/fresco/05-packaging.jpg
+  - src: /artifacts/fresco/05-packaging.jpg
     alt: Fresco product packaging box design showing branding, product rendering, and technical specifications.
     width: 3839
     height: 3652
     caption: Packaging design. Shipping box and unboxing experience.
     chromeMode: light
-  - src: /work/fresco/06-installation.jpg
+  - src: /artifacts/fresco/06-installation.jpg
     alt: Installation quick-start guide showing step-by-step setup instructions with diagrams for wall mounting and network configuration.
     width: 2005
     height: 1162
