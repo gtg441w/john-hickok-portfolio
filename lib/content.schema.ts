@@ -118,6 +118,11 @@ export const Artifact = z.object({
    *  permission-to-publish question needs somewhere to land per project. */
   published: z.boolean().default(false),
   date: z.coerce.date(),
+  /** How the reading view presents the artifact. `article` renders the body as one card
+   *  per section. `walkthrough` renders a guided, in-order tour and keeps the article
+   *  below it, collapsed, as the full text. Defaults to article, so frontmatter written
+   *  before this field existed stays valid. */
+  layout: z.enum(['article', 'walkthrough']).default('article'),
   /** An empty slot on purpose, like [Framework 04] in the design files. A placeholder
    *  that renders as a slot is honest; one that renders as content is a lie. */
   placeholder: z.boolean().default(false)

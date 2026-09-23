@@ -8,6 +8,9 @@ function still(src: string, width: number, height: number): Still {
   return { src, alt: '', width, height, chromeMode: 'dark', scrimStrength: 0.62 }
 }
 
+/* Framework slots with nothing written yet. Like pendingProjects below, this list only
+ * ever shrinks in effect: each published framework takes the next slot, so the rail
+ * stays four wide and the placeholders fall off the end as real ones land. */
 const frameworks = [
   { title: 'Altitude', subtitle: '[Executive to tactical, one model.]' },
   { title: 'Ambiguity to execution', subtitle: '[Framework 02 — one line.]' },
@@ -48,7 +51,20 @@ export default function HomePage() {
   /* The most recent published artifact takes the hero; the rest fall into the rail
    * ahead of the not-yet-written ones. Ordering is by date, from the loader, so the
    * hero changes by writing an artifact rather than by editing this file. */
-  const [heroArtifact, ...railArtifacts] = getPublishedArtifacts()
+  const published = getPublishedArtifacts()
+  const [heroArtifact, ...railArtifacts] = published.filter(a => a.kind !== 'framework')
+
+  /* A published framework's title reads "Name: tagline". The card shows the name and
+   * puts the tagline beneath it, falling back to the framing line when there is none. */
+  const frameworkCards = [
+    ...published
+      .filter(a => a.kind === 'framework')
+      .map(a => {
+        const [name, ...rest] = a.title.split(': ')
+        return { key: a.slug, href: `/work/${a.slug}`, title: name, subtitle: rest.join(': ') || a.framing }
+      }),
+    ...frameworks.map(fw => ({ key: fw.title, href: '/work', ...fw })),
+  ].slice(0, frameworks.length)
 
   return (
     <main>
@@ -86,8 +102,8 @@ export default function HomePage() {
         )}
 
         <Rail title="Frameworks" caption="rail · numbered spine · top of the hierarchy" minColumnWidth={210}>
-          {frameworks.map((fw, i) => (
-            <FrameworkCard key={fw.title} href="/work" index={i + 1} title={fw.title} subtitle={fw.subtitle} />
+          {frameworkCards.map((fw, i) => (
+            <FrameworkCard key={fw.key} href={fw.href} index={i + 1} title={fw.title} subtitle={fw.subtitle} />
           ))}
         </Rail>
 

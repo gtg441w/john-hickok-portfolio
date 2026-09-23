@@ -347,3 +347,445 @@
 @media (prefers-reduced-motion: reduce) {
   .artifact-section__chevron { transition: none; }
 }
+
+/* ── Walkthrough ───────────────────────────────────────────────────────────────
+ * The guided tour an artifact with `layout: walkthrough` renders
+ * (components/walkthrough/Walkthrough.tsx carries the reasoning).
+ *
+ * Type is the system's role scale (--text-*, --leading-*, --tracking-*), so the tour
+ * reads at the same rungs as everything else and the two fluid top rungs shrink with
+ * the viewport. Ink is --glass-text / --glass-text-muted only. Cards, washes and
+ * borders are currentColor mixes, so they invert with chrome mode and never nest a
+ * second .glass inside the stage. Phase colours arrive as inline custom properties
+ * and are only ever painted as fills: bars, dots and swatches, never text.
+ *
+ * Two columns from 1024px, the system's upper break (tokens/space.css). Below it every
+ * beat stacks in DOM order, which is the reading order. */
+.walkthrough {
+  --wt-line: color-mix(in oklab, currentColor 16%, transparent);
+  --wt-wash: color-mix(in oklab, currentColor 5%, transparent);
+  --wt-focus:
+    0 0 0 var(--focus-width-inner) var(--focus-inner),
+    0 0 0 var(--focus-width-outer) var(--focus-outer);
+  display: grid;
+  gap: clamp(24px, 3vw, 40px);
+  padding: clamp(18px, 3vw, 40px);
+  border-radius: var(--radius-lg, 24px);
+  color: var(--glass-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  scroll-margin-top: 24px;
+}
+
+.walkthrough p { margin: 0; }
+
+:where(.walkthrough) button {
+  font: inherit;
+  color: inherit;
+}
+
+.walkthrough button:focus-visible,
+.walkthrough a:focus-visible,
+.walkthrough__heading:focus-visible {
+  outline: 2px solid transparent;
+  box-shadow: var(--wt-focus);
+}
+
+/* The heading takes focus only so a move is announced. A pointer user who clicked Next
+ * does not need a ring on it, and :focus-visible already withholds it from them. */
+.walkthrough__heading:focus { outline: none; }
+
+/* Rail ─ one button per chapter, a bar per beat. Scrolls sideways on a phone rather
+ * than wrapping into a second row that would push the beat down. */
+.walkthrough__rail {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: -6px -8px 0;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--wt-line);
+  padding-bottom: clamp(14px, 2vw, 20px);
+}
+
+.walkthrough__rail::-webkit-scrollbar { display: none; }
+
+.walkthrough__seg {
+  flex: none;
+  min-height: 44px;
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  align-content: center;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--glass-text-muted);
+  font-size: var(--text-micro);
+  line-height: var(--leading-micro);
+  letter-spacing: var(--tracking-micro);
+  text-transform: uppercase;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+.walkthrough__seg:hover:not(:disabled) { background: var(--wt-wash); }
+
+.walkthrough__seg[aria-current="step"] {
+  color: var(--glass-text);
+  background: color-mix(in oklab, currentColor 10%, transparent);
+}
+
+/* Locked chapters. Disabled controls are exempt from the contrast floor, and the dim
+ * is the whole message: not yet. */
+.walkthrough__seg:disabled { opacity: .5; cursor: default; }
+
+.walkthrough__dots { display: flex; gap: 3px; }
+
+.walkthrough__dot {
+  width: 18px;
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in oklab, currentColor 18%, transparent);
+}
+
+.walkthrough__dot[data-state="seen"] { background: color-mix(in oklab, currentColor 50%, transparent); }
+.walkthrough__dot[data-state="current"] { background: var(--dot, currentColor); }
+
+/* Beats */
+.walkthrough__beat {
+  display: grid;
+  gap: clamp(24px, 3vw, 40px);
+  align-items: start;
+  animation: walkthrough-enter 320ms cubic-bezier(.2, .6, .2, 1);
+}
+
+@media (min-width: 1024px) {
+  .walkthrough__beat {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 56px;
+    min-height: 540px;
+  }
+}
+
+@keyframes walkthrough-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.walkthrough__col { display: grid; gap: 18px; align-content: start; }
+
+.walkthrough__heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  color: var(--glass-text);
+}
+
+.walkthrough__heading[data-size="display"] {
+  font-size: var(--text-display);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+}
+
+.walkthrough__heading[data-size="hero"] {
+  font-size: var(--text-hero);
+  line-height: var(--leading-hero);
+  letter-spacing: var(--tracking-hero);
+}
+
+.walkthrough__heading[data-size="label"] {
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  line-height: var(--leading-micro);
+  letter-spacing: var(--tracking-micro);
+  text-transform: uppercase;
+  font-weight: var(--weight-semibold);
+  color: var(--glass-text-muted);
+}
+
+.walkthrough__line { display: block; }
+
+.walkthrough__lead {
+  font-size: var(--text-lead);
+  line-height: var(--leading-lead);
+  letter-spacing: var(--tracking-lead);
+}
+
+.walkthrough__quote {
+  font-size: var(--text-title);
+  line-height: 1.35;
+  letter-spacing: var(--tracking-title);
+}
+
+.walkthrough__title {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-title);
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-title);
+}
+
+.walkthrough__figure {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-display);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+}
+
+.walkthrough__body { font-size: var(--text-body); line-height: var(--leading-body); }
+.walkthrough__small { font-size: var(--text-small); line-height: var(--leading-small); }
+.walkthrough__muted { color: var(--glass-text-muted); }
+.walkthrough__strong { font-weight: var(--weight-semibold); }
+
+.walkthrough__micro {
+  font-size: var(--text-micro);
+  line-height: var(--leading-micro);
+  letter-spacing: var(--tracking-micro);
+  text-transform: uppercase;
+  font-weight: var(--weight-semibold);
+  color: var(--glass-text-muted);
+}
+
+.walkthrough__phase { display: flex; align-items: center; gap: 8px; }
+
+.walkthrough__swatch {
+  flex: none;
+  width: 18px;
+  height: 6px;
+  border-radius: 3px;
+}
+
+/* Cards: a wash, a hairline, never glass */
+.walkthrough__card {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  padding: clamp(18px, 2.2vw, 28px);
+  border-radius: var(--radius-lg, 24px);
+  border: 1px solid var(--wt-line);
+  background: var(--wt-wash);
+}
+
+.walkthrough__divided {
+  padding-top: 18px;
+  border-top: 1px solid var(--wt-line);
+  display: grid;
+  gap: 6px;
+}
+
+.walkthrough__divided--both {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--wt-line);
+}
+
+.walkthrough__result {
+  display: grid;
+  gap: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--wt-line);
+}
+
+.walkthrough__answer { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+
+/* Buttons. The primary is a stronger wash and a firmer edge, not an inverted fill: an
+ * inverse needs the surface colour behind the glass, which the stage owns and does not
+ * publish as a token. */
+.walkthrough__btn {
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid color-mix(in oklab, currentColor 30%, transparent);
+  background: transparent;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: background 180ms cubic-bezier(.2, .6, .2, 1);
+}
+
+.walkthrough__btn:hover { background: var(--wt-wash); }
+
+.walkthrough__btn--primary {
+  margin-left: auto;
+  border-color: color-mix(in oklab, currentColor 65%, transparent);
+  background: color-mix(in oklab, currentColor 12%, transparent);
+}
+
+.walkthrough__btn--primary:hover { background: color-mix(in oklab, currentColor 18%, transparent); }
+
+.walkthrough__btn--small {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0 18px;
+  font-size: var(--text-small);
+}
+
+/* Hook */
+.walkthrough__options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.walkthrough__option {
+  min-height: 52px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in oklab, currentColor 30%, transparent);
+  background: transparent;
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-lead);
+  cursor: pointer;
+}
+
+.walkthrough__option:hover { background: var(--wt-wash); }
+
+.walkthrough__option[data-state="correct"] {
+  border: 2px solid currentColor;
+  background: color-mix(in oklab, currentColor 14%, transparent);
+}
+
+.walkthrough__option[data-state="picked"] { border-style: dashed; }
+
+/* AI layer */
+.walkthrough__ai {
+  display: grid;
+  border-radius: var(--radius-lg, 24px);
+  border: 1px dashed color-mix(in oklab, currentColor 35%, transparent);
+}
+
+.walkthrough__ai[data-open] {
+  border-style: solid;
+  border-color: var(--wt-line);
+  background: var(--wt-wash);
+}
+
+.walkthrough__ai-toggle {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  text-align: left;
+  padding: clamp(18px, 2.4vw, 32px);
+  border: 0;
+  border-radius: var(--radius-lg, 24px);
+  background: transparent;
+  cursor: pointer;
+}
+
+.walkthrough__ai-toggle:hover { background: var(--wt-wash); }
+
+.walkthrough__ai[data-open] .walkthrough__ai-toggle {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  width: 100%;
+  padding-bottom: 8px;
+}
+
+.walkthrough__ai-body {
+  display: grid;
+  gap: 18px;
+  padding: 0 clamp(18px, 2.4vw, 32px) clamp(18px, 2.4vw, 32px);
+}
+
+.walkthrough__ai-body > div { display: grid; gap: 6px; }
+
+/* Ladder */
+.walkthrough__ladder {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  min-height: 210px;
+}
+
+.walkthrough__rung {
+  flex: 1 1 0;
+  display: grid;
+  gap: 6px;
+  align-content: end;
+  text-align: left;
+  padding: 16px;
+  border-radius: var(--radius-md, 16px);
+  border: 1px solid var(--wt-line);
+  background: transparent;
+  cursor: pointer;
+}
+
+.walkthrough__rung[data-rung="1"] { min-height: 150px; }
+.walkthrough__rung[data-rung="2"] { min-height: 180px; }
+.walkthrough__rung[data-rung="3"] { min-height: 210px; }
+.walkthrough__rung:hover { background: var(--wt-wash); }
+
+.walkthrough__rung[aria-pressed="true"] {
+  border: 2px solid currentColor;
+  background: color-mix(in oklab, currentColor 12%, transparent);
+}
+
+.walkthrough__rung-name {
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-lead);
+  line-height: var(--leading-title);
+}
+
+/* Quadrant */
+.walkthrough__quadrant {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.walkthrough__zone {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: clamp(14px, 1.8vw, 22px);
+  border-radius: var(--radius-md, 16px);
+  border: 1px solid var(--wt-line);
+  background: var(--wt-wash);
+}
+
+.walkthrough__zone[data-owner="shared"] { border-color: color-mix(in oklab, currentColor 40%, transparent); }
+
+.walkthrough__zone[data-owner="person"] {
+  border: 2px solid currentColor;
+  background: color-mix(in oklab, currentColor 12%, transparent);
+}
+
+.walkthrough__axis { display: flex; align-items: center; gap: 12px; }
+.walkthrough__rule { flex: 1 1 0; height: 1px; background: var(--wt-line); }
+
+.walkthrough__links {
+  display: grid;
+  gap: 10px;
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+}
+
+.walkthrough__links a { color: var(--glass-text); justify-self: start; }
+
+/* Nav */
+.walkthrough__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: clamp(14px, 2vw, 20px);
+  border-top: 1px solid var(--wt-line);
+}
+
+@media (max-width: 719px) {
+  /* The counter drops out on a phone so Back and Next keep full-size targets on one
+   * row; the rail above already says where you are. */
+  .walkthrough__nav > span { display: none; }
+  .walkthrough__ladder { flex-direction: column; align-items: stretch; min-height: 0; }
+  .walkthrough__rung[data-rung] { min-height: 0; }
+  .walkthrough__quadrant { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .walkthrough__beat { animation: none; }
+  .walkthrough__btn { transition: none; }
+}

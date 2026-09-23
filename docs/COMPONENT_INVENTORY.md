@@ -25,6 +25,7 @@ shipping the content as JS.
 | `SlideOverPanel` | Focus trapping, `inert`, Escape, mount-preserving overlay |
 | `SearchModal` | Input state, keyboard nav, cross-category results |
 | `ConnectForm` | Segmented selector reshapes the view; the Client path submits |
+| `Walkthrough` | A guided, in-order tour: holds position, progress and what the reader has opened. Rendered for `layout: walkthrough`; the full text stays server-rendered beneath it |
 | `BackdropSlot` | Only when filled with something animated — see below |
 
 `ScrollProbe` is a fifth candidate: the header and backdrop respond to `scrollY`. Do it

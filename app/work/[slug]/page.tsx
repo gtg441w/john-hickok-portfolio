@@ -3,6 +3,8 @@ import type { Metadata } from 'next'
 
 import { getArtifact, getPublishedSlugs, getSections, kindLine, metaLine } from '@/lib/content'
 import ArtifactSection, { MediaFigure } from '@/components/artifact/ArtifactSection'
+import Walkthrough from '@/components/walkthrough/Walkthrough'
+import { getWalkthrough } from '@/lib/walkthrough'
 
 /* Static per slug. Unpublished artifacts are absent from this list AND rejected by
  * the handler below, so "not in the collection" and "not reachable by URL" stay the
@@ -103,53 +105,89 @@ export default async function ArtifactPage({ params }: { params: Promise<{ slug:
           )}
         </header>
 
-        {/* The hero carries no ink. Text over media is the backdrop stage's job and
-          * nowhere else's, so this is just the image. */}
-        <img
-          src={artifact.hero.src}
-          alt={artifact.hero.alt}
-          width={artifact.hero.width}
-          height={artifact.hero.height}
-          style={{
-            width: '100%',
-            height: 'auto',
-            display: 'block',
-            borderRadius: 'var(--radius-lg, 24px)',
-            border: '1px solid var(--glass-edge, rgba(128,128,128,.25))',
-          }}
-        />
+        {artifact.layout === 'walkthrough' ? (
+          <>
+            <Walkthrough script={getWalkthrough(artifact.slug)} />
 
-        {/* Sibling glass cards, never nested: .glass .glass drops its filter by design,
-          * so wrapping these in a glass panel would silently flatten all of them. */}
-        <div style={{ display: 'grid', gap: 16 }}>
-          {sections.map(s => (
-            <ArtifactSection key={s.id} section={s} />
-          ))}
-        </div>
-
-        {/* Media the author never placed in a section. Empty when everything is
-          * placed, which is the intent; present so an unplaced still or clip is
-          * visible rather than lost. */}
-        {unplaced.length > 0 && (
-          <section style={{ display: 'grid', gap: 24 }}>
-            <h2
+            {/* The full text, every section collapsed. The tour tells the story in
+              * order; this is for the reader who wants it straight through, for search,
+              * and for anyone without script. Sibling glass cards, never nested. */}
+            <section style={{ display: 'grid', gap: 16 }} aria-labelledby="full-text">
+              <div style={{ display: 'grid', gap: 6, paddingLeft: 4 }}>
+                <h2
+                  id="full-text"
+                  style={{
+                    margin: 0,
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 'clamp(22px,2.2vw,28px)',
+                    letterSpacing: '-.02em',
+                    fontWeight: 600,
+                    color: 'var(--glass-text)',
+                    scrollMarginTop: 24,
+                  }}
+                >
+                  The full text
+                </h2>
+                <p style={{ margin: 0, fontSize: 15, color: 'var(--glass-text-muted)' }}>
+                  Prefer to read it straight through? Every section, in order.
+                </p>
+              </div>
+              {sections.map(s => (
+                <ArtifactSection key={s.id} section={s} defaultOpen={false} />
+              ))}
+            </section>
+          </>
+        ) : (
+          <>
+            {/* The hero carries no ink. Text over media is the backdrop stage's job and
+              * nowhere else's, so this is just the image. */}
+            <img
+              src={artifact.hero.src}
+              alt={artifact.hero.alt}
+              width={artifact.hero.width}
+              height={artifact.hero.height}
               style={{
-                margin: 0,
-                fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(22px,2.2vw,28px)',
-                letterSpacing: '-.02em',
-                fontWeight: 600,
-                color: 'var(--glass-text)',
+                width: '100%',
+                height: 'auto',
+                display: 'block',
+                borderRadius: 'var(--radius-lg, 24px)',
+                border: '1px solid var(--glass-edge, rgba(128,128,128,.25))',
               }}
-            >
-              Gallery
-            </h2>
-            <div style={{ display: 'grid', gap: 40 }}>
-              {unplaced.map(m => (
-                <MediaFigure key={m.kind === 'still' ? m.still.src : m.clip.src} media={m} />
+            />
+
+            {/* Sibling glass cards, never nested: .glass .glass drops its filter by design,
+              * so wrapping these in a glass panel would silently flatten all of them. */}
+            <div style={{ display: 'grid', gap: 16 }}>
+              {sections.map(s => (
+                <ArtifactSection key={s.id} section={s} />
               ))}
             </div>
-          </section>
+
+            {/* Media the author never placed in a section. Empty when everything is
+              * placed, which is the intent; present so an unplaced still or clip is
+              * visible rather than lost. */}
+            {unplaced.length > 0 && (
+              <section style={{ display: 'grid', gap: 24 }}>
+                <h2
+                  style={{
+                    margin: 0,
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 'clamp(22px,2.2vw,28px)',
+                    letterSpacing: '-.02em',
+                    fontWeight: 600,
+                    color: 'var(--glass-text)',
+                  }}
+                >
+                  Gallery
+                </h2>
+                <div style={{ display: 'grid', gap: 40 }}>
+                  {unplaced.map(m => (
+                    <MediaFigure key={m.kind === 'still' ? m.still.src : m.clip.src} media={m} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
         )}
       </article>
     </main>
