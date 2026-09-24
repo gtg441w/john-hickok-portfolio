@@ -168,6 +168,123 @@
   .home-mark { transition: none; }
 }
 
+/* ── Site header ───────────────────────────────────────────────────────────────
+ * Two elements: the mark and the floating bar (nav links + chrome switcher).
+ *
+ * Wide: a three-column grid, 1fr | auto | 1fr. The equal outer tracks are what keep
+ * the bar centred on the page rather than centred in whatever the mark leaves over;
+ * the mark takes the left track, the right one stays empty.
+ *
+ * Narrow (< 720px, the site's existing breakpoint): the mark centres at the top and
+ * the bar docks to the bottom of the viewport, where a thumb reaches it. Docked, it is
+ * fixed, so the page reserves room beneath its last line of content. */
+.site-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: clamp(12px, 2vw, 32px) clamp(12px, 2vw, 32px) 0;
+}
+
+.site-header .home-mark {
+  grid-column: 1;
+  padding: 4px 0;
+}
+
+.site-header .site-nav {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 6px 6px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.site-nav__divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 6px;
+  background: var(--glass-edge);
+}
+
+/* The chrome switcher sits inside the bar's glass, so it carries no glass of its own
+ * (nested blur is dropped by the system anyway). Same pill shape and hover wash as a
+ * NavLink, so it reads as one more control in the row. */
+.theme-toggle {
+  appearance: none;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--glass-text);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 180ms cubic-bezier(.2, .6, .2, 1);
+}
+
+button.theme-toggle:hover { background: color-mix(in oklab, currentColor 10%, transparent); }
+
+@media (max-width: 719px) {
+  .site-header {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    padding: 12px 16px 0;
+  }
+
+  .site-header .home-mark { grid-column: 1; justify-self: center; }
+
+  .site-header .site-nav {
+    position: fixed;
+    z-index: 10;
+    left: 50%;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    max-width: calc(100vw - 32px);
+    padding: 4px;
+    transition: transform 280ms cubic-bezier(.2, .6, .2, 1);
+  }
+
+  /* Scrolling down slides the bar below the viewport edge; scrolling up brings it
+   * back (FloatingBar.tsx reports the direction). It slides away rather than
+   * shrinking in place, because a shrunken bar would take its targets under 44px.
+   * Focus inside the bar pins it, so a keyboard user never tabs into something they
+   * cannot see. */
+  .site-header .site-nav[data-hidden]:not(:focus-within) {
+    transform: translate(-50%, calc(100% + 16px + env(safe-area-inset-bottom, 0px)));
+  }
+
+  /* 44px targets on a phone: Apple's minimum for a thumb, above WCAG's 24px floor.
+   * min-height, not height, so the inline padding in NavLink.tsx still applies. */
+  .site-nav .nav-link {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .site-nav .theme-toggle { width: 44px; height: 44px; }
+
+  /* Room for the docked bar: its height plus the gap it floats at. */
+  body { padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Reduced motion: the bar stays put. Hiding it without the slide would be an abrupt
+ * jump, and a bar that never moves is the calmer of the two. */
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle { transition: none; }
+  .site-header .site-nav { transition: none; }
+}
+
+@media (max-width: 719px) and (prefers-reduced-motion: reduce) {
+  .site-header .site-nav[data-hidden]:not(:focus-within) { transform: translateX(-50%); }
+}
+
 /* ── Card clip ─────────────────────────────────────────────────────────────────
  * A <video> standing in for the card's media row (ArtifactCard.tsx). The fork's own
  * [data-artifact-media] rule still applies — fallback colour, no radius of its own —

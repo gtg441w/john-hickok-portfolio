@@ -24,7 +24,10 @@ export default function ThemeToggle() {
     setTheme((document.documentElement.dataset.theme as ResolvedTheme) || 'dark')
   }, [])
 
-  if (!theme) return null
+  /* Before mount the resolved theme is unknown, so hold the slot empty at full size
+   * rather than rendering nothing — the floating bar is centred, and a late-arriving
+   * button would shift every link in it. */
+  if (!theme) return <span className="theme-toggle" aria-hidden="true" />
 
   const isDark = theme === 'dark'
   const next: ResolvedTheme = isDark ? 'light' : 'dark'
@@ -32,28 +35,13 @@ export default function ThemeToggle() {
   return (
     <button
       type="button"
-      className="glass"
-      data-glass-level="nav"
-      data-glass-interactive=""
+      className="theme-toggle"
       aria-pressed={isDark}
       aria-label={`Switch to ${next} mode`}
       title={`Switch to ${next} mode`}
       onClick={() => {
         applyTheme(next)
         setTheme(next)
-      }}
-      style={{
-        appearance: 'none',
-        cursor: 'pointer',
-        fontFamily: 'inherit',
-        height: 46,
-        width: 46,
-        borderRadius: 999,
-        display: 'grid',
-        placeItems: 'center',
-        flex: '0 0 auto',
-        border: '1px solid var(--glass-edge)',
-        padding: 0,
       }}
     >
       <span
