@@ -1,7 +1,6 @@
 import type { Still } from '@/lib/content.schema'
 import ArtifactCard from '@/components/artifact/ArtifactCard'
 import Rail from '@/components/artifact/Rail'
-import FrameworkCard from '@/components/framework/FrameworkCard'
 import { getPublishedArtifacts, kindLine, metaLine } from '@/lib/content'
 
 function still(src: string, width: number, height: number): Still {
@@ -12,10 +11,10 @@ function still(src: string, width: number, height: number): Still {
  * ever shrinks in effect: each published framework takes the next slot, so the rail
  * stays four wide and the placeholders fall off the end as real ones land. */
 const frameworks = [
-  { title: 'Altitude', subtitle: '[Executive to tactical, one model.]' },
-  { title: 'Ambiguity to execution', subtitle: '[Framework 02 — one line.]' },
-  { title: 'Operating cadence', subtitle: '[Framework 03 — one line.]' },
-  { title: '[Framework 04]', subtitle: '[Framework 04 — one line.]' },
+  { title: 'Altitude', src: '/media/artifact-retreat-site.png', w: 1200, h: 844 },
+  { title: 'Ambiguity to execution', src: '/media/artifact-weather-glass.png', w: 1200, h: 844 },
+  { title: 'Operating cadence', src: '/media/artifact-movie-box.png', w: 752, h: 588 },
+  { title: '[Framework 04]', src: '/media/artifact-voice-app.png', w: 2048, h: 1536 },
 ]
 
 /* Projects with no artifact written yet. These are bracket-holes wearing real
@@ -54,16 +53,26 @@ export default function HomePage() {
   const published = getPublishedArtifacts()
   const [heroArtifact, ...railArtifacts] = published.filter(a => a.kind !== 'framework')
 
-  /* A published framework's title reads "Name: tagline". The card shows the name and
-   * puts the tagline beneath it, falling back to the framing line when there is none. */
+  /* A published framework's title reads "Name: tagline". The rail card is the same
+   * small card the projects use, so it takes the name only; the tagline is the page's
+   * own framing line. */
   const frameworkCards = [
     ...published
       .filter(a => a.kind === 'framework')
-      .map(a => {
-        const [name, ...rest] = a.title.split(': ')
-        return { key: a.slug, href: `/work/${a.slug}`, title: name, subtitle: rest.join(': ') || a.framing }
-      }),
-    ...frameworks.map(fw => ({ key: fw.title, href: '/work', ...fw })),
+      .map(a => ({
+        key: a.slug,
+        href: `/work/${a.slug}`,
+        title: a.title.split(': ')[0],
+        kind: kindLine(a),
+        still: a.hero,
+      })),
+    ...frameworks.map(fw => ({
+      key: fw.title,
+      href: '/work',
+      title: fw.title,
+      kind: 'Framework',
+      still: still(fw.src, fw.w, fw.h),
+    })),
   ].slice(0, frameworks.length)
 
   return (
@@ -101,9 +110,9 @@ export default function HomePage() {
           <ArtifactCard href="/work" size="lg" featured {...placeholderHero} />
         )}
 
-        <Rail title="Frameworks" caption="rail · numbered spine · top of the hierarchy" minColumnWidth={210}>
-          {frameworkCards.map((fw, i) => (
-            <FrameworkCard key={fw.key} href={fw.href} index={i + 1} title={fw.title} subtitle={fw.subtitle} />
+        <Rail title="Frameworks" caption="rail · horizontal · snap · top of the hierarchy" minColumnWidth={248}>
+          {frameworkCards.map(fw => (
+            <ArtifactCard key={fw.key} href={fw.href} size="sm" title={fw.title} kind={fw.kind} still={fw.still} />
           ))}
         </Rail>
 

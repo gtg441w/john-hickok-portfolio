@@ -7,11 +7,20 @@ readingTime: 9
 date: 2021-01-01
 layout: walkthrough
 hero:
-  src: /artifacts/making-analytics-actionable/four-phases.png
-  alt: "The framework's four phases in a row, each topped by one colored bar per step: Discover (audit, question, organize), Define (epic, user story, business question), Answer (answers, visualizations) and Act (thresholds, actions, automate). A line beneath them runs from audit to automation."
-  width: 2400
-  height: 1350
+  src: /artifacts/making-analytics-actionable/thumbnail.jpg
+  alt: "A paper-craft kitchen scene from the walkthrough video: three cooks at their stoves while a manager in the foreground checks a clipboard."
+  width: 720
+  height: 405
   chromeMode: dark
+video:
+  src: /artifacts/making-analytics-actionable/walkthrough.mp4
+  title: "How to Build Dashboards People Actually Use"
+  poster:
+    src: /artifacts/making-analytics-actionable/walkthrough-poster.jpg
+    alt: "Paper-craft pile of pie charts and spreadsheets stacked on a computer monitor."
+    width: 720
+    height: 1280
+    chromeMode: dark
 gallery: []
 related: []
 applies: []
