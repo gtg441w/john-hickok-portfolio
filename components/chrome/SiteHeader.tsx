@@ -24,7 +24,7 @@ export default function SiteHeader() {
       </Link>
 
       <FloatingBar>
-        <NavLink href="/">About Me</NavLink>
+        <NavLink href="/about">About Me</NavLink>
         <NavLink href="/experience">Resume</NavLink>
         <NavLink href="/connect">Connect</NavLink>
         <span className="site-nav__divider" aria-hidden="true" />
