@@ -54,6 +54,40 @@ export default async function ArtifactPage({ params }: { params: Promise<{ slug:
           margin: '0 auto',
         }}
       >
+        {/* First thing on the page, above the title. The video is portrait, so its box is
+          * capped by height and centred rather than stretched to the column. The poster
+          * is a full Still, so the box is reserved from its width and height and nothing
+          * shifts when the video loads. */}
+        {artifact.video && (
+          <figure style={{ margin: 0, display: 'grid', justifyItems: 'center' }}>
+            <video
+              controls
+              playsInline
+              preload="metadata"
+              poster={artifact.video.poster.src}
+              aria-label={artifact.video.title}
+              width={artifact.video.poster.width}
+              height={artifact.video.poster.height}
+              style={{
+                width: 'auto',
+                height: 'auto',
+                maxWidth: '100%',
+                maxHeight: 'min(80vh, 720px)',
+                aspectRatio: `${artifact.video.poster.width} / ${artifact.video.poster.height}`,
+                display: 'block',
+                background: '#000',
+                borderRadius: 'var(--radius-lg, 24px)',
+                border: '1px solid var(--glass-edge, rgba(128,128,128,.25))',
+              }}
+            >
+              <source src={artifact.video.src} type="video/mp4" />
+              {artifact.video.captions && (
+                <track kind="captions" src={artifact.video.captions} srcLang="en" label="English" default />
+              )}
+            </video>
+          </figure>
+        )}
+
         <header style={{ display: 'grid', gap: 12 }}>
           <span
             className="mono glass-micro"
