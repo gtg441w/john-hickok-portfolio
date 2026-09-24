@@ -80,8 +80,8 @@ export default function HomePage() {
         >
           A UX leader who can operate at every altitude.{' '}
           <span style={{ color: 'var(--glass-text)' }}>
-            [Positioning line — one sentence on translating executive vision into shipped
-            experience.]
+            I turn executive vision into shipped experience, from strategy and operating
+            rhythm down to the last interaction.
           </span>
         </span>
 
