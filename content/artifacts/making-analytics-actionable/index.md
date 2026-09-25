@@ -21,7 +21,42 @@ video:
     width: 720
     height: 1280
     chromeMode: dark
-gallery: []
+gallery:
+  - src: /artifacts/making-analytics-actionable/dashboards-invisible.jpg
+    alt: "A sketched wall of colorful charts, tables and torn-paper notes, so dense that no single dashboard on it can be read."
+    width: 720
+    height: 880
+    chromeMode: dark
+  - src: /artifacts/making-analytics-actionable/four-phases-list.jpg
+    alt: "Four stacked boxes labelled Phase 1: Discover, Phase 2: Define, Phase 3: Answer and Phase 4: Act."
+    width: 720
+    height: 700
+    chromeMode: dark
+  - src: /artifacts/making-analytics-actionable/atm-out-of-twenties.jpg
+    alt: "A sketched self-service kiosk whose screen shows a warning triangle and the message Out of $20s."
+    width: 720
+    height: 680
+    chromeMode: dark
+  - src: /artifacts/making-analytics-actionable/kitchen-lunch-rush.jpg
+    alt: "A sketched restaurant kitchen at the lunch rush: two cooks prepping food beneath a rail of order tickets, some ticked and some crossed out."
+    width: 720
+    height: 730
+    chromeMode: dark
+  - src: /artifacts/making-analytics-actionable/question-to-measurement.jpg
+    alt: "A chain of three boxes joined by arrows: User Story A, then Business Question, then Actionable Measurement, under a Phase 2: Define header."
+    width: 720
+    height: 760
+    chromeMode: dark
+  - src: /artifacts/making-analytics-actionable/ai-hub.jpg
+    alt: "A glowing circuit-board brain at the center of a hub, with six empty task boxes radiating from it."
+    width: 720
+    height: 540
+    chromeMode: dark
+  - src: /artifacts/making-analytics-actionable/closed-loop.jpg
+    alt: "Four boxes in a loop, Measurement, Question, Threshold and Action, joined by arrows that run from a measurement to an action."
+    width: 720
+    height: 540
+    chromeMode: dark
 related: []
 applies: []
 featured: true
@@ -30,6 +65,7 @@ placeholder: false
 ---
 
 ## Problem
+![](/artifacts/making-analytics-actionable/dashboards-invisible.jpg)
 
 Reporting and dashboard work usually starts from the wrong end: from the data already
 sitting in a warehouse, instead of from a real question a specific person asks while
@@ -51,6 +87,7 @@ applied it on the Aloha Smart Manager dashboard, whose data model later carried 
 NCR Voyix Home Dashboard.
 
 ## The method
+![](/artifacts/making-analytics-actionable/four-phases-list.jpg)
 
 Eleven steps, grouped into four phases. Each step lists what AI can speed up there, the
 payoff, and what a person keeps.
@@ -153,6 +190,8 @@ without the risk of taking a human out of the loop.
 > supervising the system that does it.
 
 ## Why it works: importance is not attention
+![](/artifacts/making-analytics-actionable/atm-out-of-twenties.jpg)
+![](/artifacts/making-analytics-actionable/kitchen-lunch-rush.jpg)
 
 Two moments, from two industries, where the method surfaced something a data-first
 approach would have missed.
@@ -179,6 +218,7 @@ metrics operators actually monitored. A follow-up survey quantified the gap:
 Design for what people check, not only for what they say matters.
 
 ## Outcome
+![](/artifacts/making-analytics-actionable/question-to-measurement.jpg)
 
 The strongest evidence of portability is not that the method was reused. It is that its
 output survived a platform rewrite. When Aloha Smart Manager was folded into NCR Voyix
@@ -193,6 +233,7 @@ checking behavior, so a dashboard has to be designed around attention, not only 
 importance.
 
 ## Where AI fits
+![](/artifacts/making-analytics-actionable/ai-hub.jpg)
 
 *Everything above this section happened. This section is a proposal: how the method
 evolves next. It hasn't been run in the field yet.*
@@ -223,6 +264,7 @@ rung three, AI reminds anyone still clocked in after close to clock out. Anythin
 costly or hard to reverse stays on rung one.
 
 ## Where it sits
+![](/artifacts/making-analytics-actionable/closed-loop.jpg)
 
 None of the parts are new on their own, and saying so is part of the point. The middle
 of the chain resembles Victor Basili's Goal Question Metric method from software
