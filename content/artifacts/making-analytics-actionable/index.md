@@ -8,16 +8,16 @@ date: 2021-01-01
 layout: walkthrough
 hero:
   src: /artifacts/making-analytics-actionable/thumbnail.jpg
-  alt: "A paper-craft kitchen scene from the walkthrough video: three cooks at their stoves while a manager in the foreground checks a clipboard."
+  alt: "A sketched point-of-sale terminal on a shop counter, with a card reader, receipt printer and shopping bags, beneath a cut-paper question mark, from the walkthrough video."
   width: 720
-  height: 405
+  height: 404
   chromeMode: dark
 video:
   src: /artifacts/making-analytics-actionable/walkthrough.mp4
-  title: "How to Build Dashboards People Actually Use"
+  title: "How to Build Dashboards That Drive Action"
   poster:
     src: /artifacts/making-analytics-actionable/walkthrough-poster.jpg
-    alt: "Paper-craft pile of pie charts and spreadsheets stacked on a computer monitor."
+    alt: "A cut-paper question mark hovering over a point-of-sale terminal on a shop counter, in a sketched illustration style."
     width: 720
     height: 1280
     chromeMode: dark
