@@ -54,7 +54,7 @@ narrow widths.
 
 | Part | Spec |
 |---|---|
-| Logo slot | `flex: 1 1 0; min-width: 0`, caption truncates with ellipsis |
+| Logo | `<Logo size={32} intro />` inside `.home-mark`: mark first, then the words. See `docs/BRAND.md` |
 | Nav pill | `.glass[data-glass-level="nav"]`, `flex: 0 1 auto; min-width: 0`, `border-radius: 999px`, `padding: 8px 16px` |
 | Nav items | About Me / Resume / Connect |
 | Active state | `color-mix(in oklab, currentColor 14%, transparent)` + `font-weight: 600` |
