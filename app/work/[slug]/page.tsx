@@ -25,7 +25,7 @@ export async function generateMetadata({
   const artifact = getArtifact(slug)
   if (!artifact || !artifact.published) return {}
   return {
-    title: `${artifact.title} · John Hickok`,
+    title: `${artifact.title} · Hickok Design`,
     description: artifact.framing,
     openGraph: {
       title: artifact.title,
