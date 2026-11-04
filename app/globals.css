@@ -124,48 +124,39 @@
 .artifact-prose td:not(:first-child) { white-space: nowrap; }
 
 /* ── Home mark ─────────────────────────────────────────────────────────────────
- * The wordmark in the site header, which is also the link home. Styled as the mark
- * rather than as a link: no underline, same ink as before. The affordance is the
- * cursor, a slight fade on hover, and the focus ring — enough to be discoverable
- * without making the logo look like a nav item.
+ * The logo in the site header, which is also the link home (components/brand, placed
+ * by SiteHeader). Styled as the mark rather than as a link: no underline, no border,
+ * the page's own ink. The affordance is the cursor, the mark's own movement
+ * (components/brand/logo.css, triggered by data-logo-trigger), and the focus outline.
  *
- * justify-self keeps the link the width of the mark inside its grid slot, so the hit
- * area ends where the name ends. */
+ * justify-self keeps the link the width of the logo inside its grid slot, so the hit
+ * area ends where the logo ends. */
 .home-mark {
   justify-self: start;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 20px;
-  letter-spacing: -.015em;
-  line-height: 1.1;
+  /* Flex, not inline: an inline lockup sits on a text line and picks up its leading,
+   * which made the link taller than the logo it wraps. */
+  display: flex;
+  align-items: center;
   color: var(--glass-text);
   text-decoration: none;
   /* The system gives every link a hairline bottom border (base styles: `a { border-
    * bottom: 1px solid var(--line-hairline) }`, darkening on hover). Right for a link in
    * running text, wrong for a logo, so the mark opts out in both states. */
   border-bottom: 0;
-  transition: opacity 180ms cubic-bezier(.2, .6, .2, 1);
 }
 
-.home-mark:hover { opacity: .72; border-bottom: 0; }
+.home-mark:hover { border-bottom: 0; }
 
-/* KEYBOARD FOCUS IS AN UNDERLINE, NOT THE SYSTEM RING. The two-tone ring drawn around
- * a padded wordmark reads as a button outline with a drop shadow, which is wrong for
- * a logo. It is not removed: a keyboard user still has to see where focus is, and
- * CLAUDE.md treats a visible focus state as part of the contract. An underline in the
- * mark's own ink is visible in both chrome modes and does not turn the logo into a
- * button. The transparent outline is there for forced-colors, where it is repainted
+/* KEYBOARD FOCUS IS A SINGLE-INK OUTLINE, NOT THE SYSTEM RING. The two-tone ring drawn
+ * around a logo reads as a button outline with a drop shadow, which is wrong for a
+ * logo. It is not removed: a keyboard user still has to see where focus is, and
+ * CLAUDE.md treats a visible focus state as part of the contract. An outline in the
+ * logo's own ink is visible in both chrome modes, and in forced-colors it is repainted
  * in a system colour. */
 .home-mark:focus-visible {
-  outline: 2px solid transparent;
-  outline-offset: 4px;
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 5px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .home-mark { transition: none; }
+  outline: 2px solid currentColor;
+  outline-offset: 6px;
+  border-radius: 8px;
 }
 
 /* ── Site header ───────────────────────────────────────────────────────────────

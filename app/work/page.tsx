@@ -4,7 +4,7 @@ import { getPublishedArtifacts, kindLine, metaLine } from '@/lib/content'
 import ArtifactCard from '@/components/artifact/ArtifactCard'
 
 export const metadata: Metadata = {
-  title: 'Collection · John Hickok',
+  title: 'Collection · Hickok Design',
   description: 'Projects, frameworks and writing.',
 }
 
