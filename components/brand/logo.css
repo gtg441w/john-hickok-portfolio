@@ -1,0 +1,238 @@
+/* ── Logo ──────────────────────────────────────────────────────────────────────
+ * Everything the logo looks like and everything it does, in this one file. Plain
+ * CSS, imported by LogoMark.tsx, so the stylesheet travels with the component.
+ * Nothing here belongs to the glass system and nothing in the glass system knows
+ * about the logo: it inherits ink from the page and borrows timing from the motion
+ * tokens (--ease-glass), which is the whole of the connection. docs/BRAND.md says why.
+ *
+ * HOW IT IS ORGANISED, so it is easy to come back to
+ *
+ *   1. TOKENS      every number that shapes a behaviour: durations, angles, scale.
+ *                  Change a feel here and nowhere else.
+ *   2. STRUCTURE   layout, colour inheritance, the four named parts of the mark.
+ *   3. RECIPES     one block per behaviour, switched on by name. Add, remove or
+ *                  rewrite one without touching the others.
+ *   4. REDUCED     what each recipe does for visitors who ask for less motion.
+ *
+ * THE CONTRACT WITH THE COMPONENTS
+ *
+ *   data-motion="draw resolve"   on the mark: which recipes are on. The names come
+ *                                from LOGO_MOTIONS in logo-motion.ts.
+ *   data-logo-trigger            on the element the visitor hovers, focuses or
+ *                                presses (the home link). Recipes that answer input
+ *                                key off this, so the hit area is the link's, not
+ *                                the drawing's.
+ *   data-state="…"               on the mark: lets script drive a state (loading,
+ *                                error) without touching any recipe. No recipe reads
+ *                                it yet; see the template at the bottom.
+ *   .logo-mark__ring | __spine | __bar | __stem
+ *                                the four strokes, each addressable on its own.
+ *
+ * COLOUR. None. Both pieces draw in currentColor, so they follow whatever ink the
+ * parent sets and invert with chrome mode for free.
+ *
+ * WHAT MAY NOT MOVE. The words, with one exception: `reveal`, which fills each letter
+ * in once on a full page load, quickly, while the mark's fill is still the main event. Motion on type
+ * reads as a loading state, so nothing else about the words moves, and nothing about
+ * them answers hover, focus or press. And, as everywhere in this site, no animated blur
+ * and no scale on a blurred surface. */
+
+/* ── 1. Tokens ─────────────────────────────────────────────────────────────────
+ * Declared on the mark, not on :root, so one instance can be tuned without the
+ * others (set the property inline), and a page can retune them all from a selector
+ * with a higher specificity than a single class. */
+.logo-mark {
+  --logo-ease: var(--ease-glass, cubic-bezier(.2, .6, .2, 1));
+
+  /* draw: the mark fills like a mould, once, from the sprue at the ring's top-left.
+   * This is the whole fill, first fluid to last; where it forks and when each piece
+   * starts is worked out in logo-fill.ts and arrives as --start / --dur / --ease on
+   * each segment, as fractions of this. It reads --intro-duration (globals.css) so the
+   * header's bar can land at the moment the fill ends; set it there, not here. */
+  --logo-fill-duration: var(--intro-duration, 1500ms);
+
+  /* resolve: the spine turns by this much, so -15deg takes the 15° lean to upright */
+  --logo-resolve-duration: 420ms;
+  --logo-resolve-angle: -15deg;
+
+  /* press: the whole mark, while the link is held */
+  --logo-press-duration: 140ms;
+  --logo-press-scale: .94;
+}
+
+/* The words' own tokens, on the wordmark: reveal fills one letter at a time, left to
+ * right. It starts with the mark's fill and is kept short on purpose, half a second in
+ * all, so it supports the mark instead of competing with it; the mark is still filling
+ * after the words are done. To start the words later, raise --logo-reveal-start. */
+.logo-wordmark {
+  --logo-reveal-start: 0ms; /* when the first letter starts to fill; 0 is with the mark */
+  --logo-reveal-duration: 500ms; /* from the first letter starting to the last finishing */
+  --logo-reveal-letter: 240ms; /* how long one letter takes, bottom to top */
+}
+
+/* ── 2. Structure ──────────────────────────────────────────────────────────── */
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  /* 18 of the mark's 64.8 units: the lockup's fixed proportion, at any size. */
+  gap: calc(var(--logo-size, 32px) * .2778);
+  line-height: 0;
+}
+
+.logo-mark,
+.logo-wordmark {
+  display: block;
+  flex: none;
+  height: var(--logo-size, 32px);
+  /* Strokes sit exactly on the viewBox edge; without this the antialiased half-pixel
+   * outside it is clipped. */
+  overflow: visible;
+}
+
+.logo-mark {
+  width: var(--logo-size, 32px);
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logo-mark path { fill: none; }
+
+.logo-wordmark {
+  width: auto;
+  fill: currentColor;
+}
+
+.logo-mark__spine {
+  /* Rotate about the middle of the mark. The viewBox is centred on 0 0, and for
+   * transform-box: view-box the reference box starts at the user-space origin rather
+   * than at the viewBox's corner, so the pivot is 0 0 and not 50% 50% (which lands
+   * at the mark's bottom-right and swings the spine out past the ring). */
+  transform-box: view-box;
+  transform-origin: 0 0;
+}
+
+/* ── 3. Recipes ────────────────────────────────────────────────────────────────
+ * Each recipe is self-contained: its own selector, its own keyframes, its own
+ * tokens. Anything that travels goes inside the no-preference query, so a visitor
+ * who asked for less motion never receives it. */
+
+/* ·· draw ····································································
+ * On a full page load the mark fills like fluid injected into a mould. The strokes are
+ * the channels: the fluid enters at the top-left of the ring, forks at the spine, forks
+ * again at the crossbar, and fills the stem last. Each piece of stroke is a segment that
+ * draws itself in along its own path, in the direction the fluid flows, and starts
+ * where the fluid reaches it. The round cap on a drawing stroke is the fluid's front.
+ *
+ * The timing is data, not CSS: logo-fill.ts works out the forks and hands each segment
+ * its --start and --dur (fractions of --logo-fill-duration) and, where a fork changed
+ * the front's speed along it, an --ease that is a linear() curve of those speeds. Where
+ * the browser does not know linear(), every segment fills at one steady speed instead.
+ *
+ * Nothing is hidden until the animation itself starts, and a CSS animation cannot be
+ * left half-run by a script that never loads, so this fails safe the way the load
+ * reveal in motion.css does. pathLength="1" on each path means one keyframe serves every
+ * segment, size and weight. The brief opacity step at the start keeps the round cap of a
+ * zero-length dash from showing as a dot while a segment waits for its fluid. */
+@media (prefers-reduced-motion: no-preference) {
+  .logo-mark[data-motion~="draw"] .logo-mark__seg {
+    stroke-dasharray: 1;
+    animation: logo-draw calc(var(--dur) * var(--logo-fill-duration)) linear
+      calc(var(--start) * var(--logo-fill-duration)) both;
+  }
+
+  @supports (animation-timing-function: linear(0, 1)) {
+    .logo-mark[data-motion~="draw"] .logo-mark__seg {
+      animation-timing-function: var(--ease, linear);
+    }
+  }
+}
+
+@keyframes logo-draw {
+  from { stroke-dashoffset: 1; opacity: 0; }
+  1% { opacity: 1; }
+  to { stroke-dashoffset: 0; opacity: 1; }
+}
+
+/* ·· reveal ···································································
+ * On a full page load each letter of the words fills from the bottom, one after another,
+ * left to right, like a row of cavities taking fluid in turn. Only the wordmark has this,
+ * and only on load; nothing in it answers the visitor.
+ *
+ * Each letter is a group (Wordmark.tsx) that carries its place as --i and the letter count
+ * as --n on the svg. A letter starts at --logo-reveal-start plus its place along the
+ * remaining time, so the first begins at the start and the last ends exactly
+ * --logo-reveal-duration later. A clip, not a mask or a scale: the letter never changes size and the
+ * clip is a plain rectangle. Nothing is hidden until the animation itself starts, and a
+ * CSS animation cannot be left half-run by a script that never loads, so this fails safe
+ * the same way the mark's fill does. */
+@media (prefers-reduced-motion: no-preference) {
+  .logo-wordmark[data-motion~="reveal"] .logo-wordmark__letter {
+    animation: logo-reveal var(--logo-reveal-letter) cubic-bezier(.3, .7, .2, 1)
+      calc(
+        var(--logo-reveal-start) + var(--i) *
+          (var(--logo-reveal-duration) - var(--logo-reveal-letter)) /
+          (var(--n) - 1)
+      ) both;
+  }
+}
+
+@keyframes logo-reveal {
+  from { clip-path: inset(100% 0 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+/* ·· resolve ··································································
+ * Hover or keyboard focus on the trigger straightens the spine, which turns the
+ * slanted H and D into plain, level letters. It leans back on release. */
+.logo-mark[data-motion~="resolve"] .logo-mark__spine {
+  transition: transform var(--logo-resolve-duration) var(--logo-ease);
+}
+
+[data-logo-trigger]:is(:hover, :focus-visible) .logo-mark[data-motion~="resolve"] .logo-mark__spine {
+  transform: rotate(var(--logo-resolve-angle));
+}
+
+/* ·· press ····································································
+ * A small scale-down while the trigger is held. The mark is not glass, so scale is
+ * allowed on it; keep it off anything blurred that it sits inside. */
+.logo-mark[data-motion~="press"] {
+  transition: transform var(--logo-press-duration) var(--logo-ease);
+}
+
+[data-logo-trigger]:active .logo-mark[data-motion~="press"] {
+  transform: scale(var(--logo-press-scale));
+}
+
+/* ── 4. Reduced motion ─────────────────────────────────────────────────────────
+ * The draw is already gated above. The recipes that answer input keep answering, but
+ * change state at once instead of easing: the mark still responds, it just does not
+ * travel to get there. A new recipe that uses a duration token is covered by adding
+ * its token here; one that uses keyframes belongs inside the no-preference query. */
+@media (prefers-reduced-motion: reduce) {
+  .logo-mark {
+    --logo-resolve-duration: 0ms;
+    --logo-press-duration: 0ms;
+  }
+}
+
+/* ── Template: a new recipe ────────────────────────────────────────────────────
+ *  1. Name it and add the name to LOGO_MOTIONS in logo-motion.ts.
+ *  2. Add its tokens to § 1.
+ *  3. Write it here, keyed on [data-motion~="name"]. If it answers input, key the
+ *     trigger on [data-logo-trigger]. If it travels, put it inside
+ *     @media (prefers-reduced-motion: no-preference).
+ *  4. If it uses a duration token, zero that token in § 4.
+ *  5. Turn it on where it should run: <Logo motion={[...]} />.
+ *
+ * Example, a state driven by script, such as a route change in flight:
+ *
+ *   @media (prefers-reduced-motion: no-preference) {
+ *     .logo-mark[data-state="loading"] .logo-mark__ring {
+ *       animation: logo-breathe 1200ms var(--logo-ease) infinite alternate;
+ *     }
+ *   }
+ *   @keyframes logo-breathe { to { opacity: .55; } }
+ */

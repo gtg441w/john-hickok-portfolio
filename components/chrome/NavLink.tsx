@@ -19,7 +19,7 @@ export default function NavLink({ href, children }: { href: string; children: st
   return (
     <Link
       href={href}
-      className="mono"
+      className="mono nav-link"
       style={{
         ...base,
         background: active ? 'color-mix(in oklab, currentColor 14%, transparent)' : 'transparent',

@@ -124,48 +124,201 @@
 .artifact-prose td:not(:first-child) { white-space: nowrap; }
 
 /* ── Home mark ─────────────────────────────────────────────────────────────────
- * The wordmark in the site header, which is also the link home. Styled as the mark
- * rather than as a link: no underline, same ink as before. The affordance is the
- * cursor, a slight fade on hover, and the focus ring — enough to be discoverable
- * without making the logo look like a nav item.
+ * The logo in the site header, which is also the link home (components/brand, placed
+ * by SiteHeader). Styled as the mark rather than as a link: no underline, no border,
+ * the page's own ink. The affordance is the cursor, the mark's own movement
+ * (components/brand/logo.css, triggered by data-logo-trigger), and the focus outline.
  *
- * justify-self keeps the link the width of the mark inside its grid slot, so the hit
- * area ends where the name ends. */
+ * justify-self keeps the link the width of the logo inside its grid slot, so the hit
+ * area ends where the logo ends. */
 .home-mark {
   justify-self: start;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 20px;
-  letter-spacing: -.015em;
-  line-height: 1.1;
+  /* Flex, not inline: an inline lockup sits on a text line and picks up its leading,
+   * which made the link taller than the logo it wraps. */
+  display: flex;
+  align-items: center;
   color: var(--glass-text);
   text-decoration: none;
   /* The system gives every link a hairline bottom border (base styles: `a { border-
    * bottom: 1px solid var(--line-hairline) }`, darkening on hover). Right for a link in
    * running text, wrong for a logo, so the mark opts out in both states. */
   border-bottom: 0;
-  transition: opacity 180ms cubic-bezier(.2, .6, .2, 1);
 }
 
-.home-mark:hover { opacity: .72; border-bottom: 0; }
+.home-mark:hover { border-bottom: 0; }
 
-/* KEYBOARD FOCUS IS AN UNDERLINE, NOT THE SYSTEM RING. The two-tone ring drawn around
- * a padded wordmark reads as a button outline with a drop shadow, which is wrong for
- * a logo. It is not removed: a keyboard user still has to see where focus is, and
- * CLAUDE.md treats a visible focus state as part of the contract. An underline in the
- * mark's own ink is visible in both chrome modes and does not turn the logo into a
- * button. The transparent outline is there for forced-colors, where it is repainted
+/* KEYBOARD FOCUS IS A SINGLE-INK OUTLINE, NOT THE SYSTEM RING. The two-tone ring drawn
+ * around a logo reads as a button outline with a drop shadow, which is wrong for a
+ * logo. It is not removed: a keyboard user still has to see where focus is, and
+ * CLAUDE.md treats a visible focus state as part of the contract. An outline in the
+ * logo's own ink is visible in both chrome modes, and in forced-colors it is repainted
  * in a system colour. */
 .home-mark:focus-visible {
-  outline: 2px solid transparent;
-  outline-offset: 4px;
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 5px;
+  outline: 2px solid currentColor;
+  outline-offset: 6px;
+  border-radius: 8px;
 }
 
+/* ── Site header ───────────────────────────────────────────────────────────────
+ * Two elements: the mark and the floating bar (nav links + chrome switcher).
+ *
+ * Wide: a three-column grid, 1fr | auto | 1fr. The equal outer tracks are what keep
+ * the bar centred on the page rather than centred in whatever the mark leaves over;
+ * the mark takes the left track, the right one stays empty.
+ *
+ * Narrow (< 52rem = 832px): the mark centres at the top and the bar docks to the
+ * bottom of the viewport, where a thumb reaches it. Docked, it is fixed, so the page
+ * reserves room beneath its last line of content.
+ *
+ * WHY 52rem. The row layout needs the centred bar to clear the lockup by 16px. With
+ * the lockup 201px wide, the bar 333–335px wide (it widens a little when the active
+ * link is bold) and 2vw side padding, that point is 801px. 52rem leaves ~31px there,
+ * so there is ~15px to spare for a webfont that has not loaded yet and for a classic
+ * scrollbar, which takes ~15px from the layout but not from the media query. In rem,
+ * so the browser's text-size setting moves it with the text. If the bar gains a link,
+ * re-measure: gap = (viewport - bar) / 2 - padding - lockup, and keep it >= 16. */
+.site-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: clamp(12px, 2vw, 32px) clamp(12px, 2vw, 32px) 0;
+}
+
+.site-header .home-mark {
+  grid-column: 1;
+  padding: 4px 0;
+}
+
+.site-header .site-nav {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 6px 6px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.site-nav__divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 6px;
+  background: var(--glass-edge);
+}
+
+/* The chrome switcher sits inside the bar's glass, so it carries no glass of its own
+ * (nested blur is dropped by the system anyway). Same pill shape and hover wash as a
+ * NavLink, so it reads as one more control in the row. */
+.theme-toggle {
+  appearance: none;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--glass-text);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 180ms cubic-bezier(.2, .6, .2, 1);
+}
+
+button.theme-toggle:hover { background: color-mix(in oklab, currentColor 10%, transparent); }
+
+@media (max-width: 51.999rem) {
+  .site-header {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    padding: 12px 16px 0;
+  }
+
+  .site-header .home-mark { grid-column: 1; justify-self: center; }
+
+  .site-header .site-nav {
+    position: fixed;
+    z-index: 10;
+    left: 50%;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    max-width: calc(100vw - 32px);
+    padding: 4px;
+    transition: transform 280ms cubic-bezier(.2, .6, .2, 1);
+  }
+
+  /* Scrolling down slides the bar below the viewport edge; scrolling up brings it
+   * back (FloatingBar.tsx reports the direction). It slides away rather than
+   * shrinking in place, because a shrunken bar would take its targets under 44px.
+   * Focus inside the bar pins it, so a keyboard user never tabs into something they
+   * cannot see. */
+  .site-header .site-nav[data-hidden]:not(:focus-within) {
+    transform: translate(-50%, calc(100% + 16px + env(safe-area-inset-bottom, 0px)));
+  }
+
+  /* 44px targets on a phone: Apple's minimum for a thumb, above WCAG's 24px floor.
+   * min-height, not height, so the inline padding in NavLink.tsx still applies. */
+  .site-nav .nav-link {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .site-nav .theme-toggle { width: 44px; height: 44px; }
+
+  /* Room for the docked bar: its height plus the gap it floats at. */
+  body { padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Reduced motion: the bar stays put. Hiding it without the slide would be an abrupt
+ * jump, and a bar that never moves is the calmer of the two. */
 @media (prefers-reduced-motion: reduce) {
-  .home-mark { transition: none; }
+  .theme-toggle { transition: none; }
+  .site-header .site-nav { transition: none; }
+}
+
+@media (max-width: 51.999rem) and (prefers-reduced-motion: reduce) {
+  .site-header .site-nav[data-hidden]:not(:focus-within) { transform: translateX(-50%); }
+}
+
+/* ── Site header entrance ──────────────────────────────────────────────────────
+ * The logo fills in (logo.css) from the first frame; the bar follows, dropping 20px
+ * into place and fading in, and lands at the same moment the logo finishes. Docked at
+ * the bottom it rises 20px instead, so it always arrives from the side it sits on.
+ *
+ * --intro-duration is the one number both read: how long the logo takes from first
+ * fluid to last. The bar's own travel is --enter-duration, and it starts that long
+ * before the end, so retiming the logo retimes the bar with it. Short on purpose: a
+ * long travel moves a blurred surface across the whole viewport, and the blur is the
+ * expensive part on a mid-tier phone. Only translate and opacity move; the glass
+ * never changes size.
+ *
+ * Pure CSS, so there is nothing to hydrate and nothing to flash: the 'backwards' fill
+ * holds the bar at its start state through the delay and hands back to its own styles
+ * when it lands. It plays on a full page load only, because the header lives in the
+ * root layout and client-side navigation never remounts it. `translate` is its own
+ * property, so it composes with the `transform` the docked bar uses to hide on scroll.
+ * Visitors who ask for less motion get no entrance at all. */
+:root { --intro-duration: 1500ms; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .site-header .site-nav {
+    --enter-y: -20px;
+    --enter-duration: 700ms;
+    animation: site-nav-in var(--enter-duration) cubic-bezier(.2, .7, .2, 1)
+      calc(var(--intro-duration) - var(--enter-duration)) backwards;
+  }
+}
+
+@media (max-width: 51.999rem) and (prefers-reduced-motion: no-preference) {
+  .site-header .site-nav { --enter-y: 20px; }
+}
+
+@keyframes site-nav-in {
+  from { translate: 0 var(--enter-y); opacity: 0; }
 }
 
 /* ── Card clip ─────────────────────────────────────────────────────────────────

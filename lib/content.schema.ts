@@ -102,6 +102,17 @@ export const Artifact = z.object({
    *  carry a pause control, and WCAG 2.2.2 requires one for motion that starts on its
    *  own and lasts longer. `hero` stays the still everywhere else. */
   heroClip: Clip.optional(),
+  /** A narrated video for the reading view, rendered above the title with controls and
+   *  sound. Distinct from `heroClip`, which is a silent card animation. The poster is
+   *  the frame shown before play; `captions` is a WebVTT track when one exists. */
+  video: z
+    .object({
+      src: z.string().regex(/\.mp4$/),
+      poster: Still,
+      title: z.string().min(1),
+      captions: z.string().regex(/\.vtt$/).optional()
+    })
+    .optional(),
   /** 3–6 curated stills. Not a dump of every screen: a project needing twenty is a
    *  signal to curate, and the gallery is sized for four. No completeness requirement. */
   gallery: z.array(Still).max(12).default([]),

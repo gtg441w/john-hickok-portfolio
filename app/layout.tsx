@@ -8,7 +8,7 @@ import BackdropStage from '@/components/backdrop/BackdropStage'
 import BackdropSlot from '@/components/backdrop/BackdropSlot'
 
 export const metadata: Metadata = {
-  title: 'John Hickok',
+  title: 'Hickok Design',
   description: 'Portfolio and practice record of John Hickok, UX leader.',
 }
 
