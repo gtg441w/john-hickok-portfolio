@@ -31,8 +31,11 @@
  * COLOUR. None. Both pieces draw in currentColor, so they follow whatever ink the
  * parent sets and invert with chrome mode for free.
  *
- * WHAT MAY NOT MOVE. The words. Motion on type reads as a loading state. And, as
- * everywhere in this site, no animated blur and no scale on a blurred surface. */
+ * WHAT MAY NOT MOVE. The words, with one exception: `reveal`, which fills each letter
+ * in once on a full page load, quickly, while the mark's fill is still the main event. Motion on type
+ * reads as a loading state, so nothing else about the words moves, and nothing about
+ * them answers hover, focus or press. And, as everywhere in this site, no animated blur
+ * and no scale on a blurred surface. */
 
 /* ── 1. Tokens ─────────────────────────────────────────────────────────────────
  * Declared on the mark, not on :root, so one instance can be tuned without the
@@ -41,10 +44,12 @@
 .logo-mark {
   --logo-ease: var(--ease-glass, cubic-bezier(.2, .6, .2, 1));
 
-  /* draw: the four strokes draw themselves in, once, in this order */
-  --logo-draw-duration: 640ms;
-  --logo-draw-stagger: 120ms; /* between one stroke starting and the next */
-  --logo-draw-delay: 0ms; /* before the first stroke starts */
+  /* draw: the mark fills like a mould, once, from the sprue at the ring's top-left.
+   * This is the whole fill, first fluid to last; where it forks and when each piece
+   * starts is worked out in logo-fill.ts and arrives as --start / --dur / --ease on
+   * each segment, as fractions of this. It reads --intro-duration (globals.css) so the
+   * header's bar can land at the moment the fill ends; set it there, not here. */
+  --logo-fill-duration: var(--intro-duration, 1500ms);
 
   /* resolve: the spine turns by this much, so -15deg takes the 15° lean to upright */
   --logo-resolve-duration: 420ms;
@@ -53,6 +58,16 @@
   /* press: the whole mark, while the link is held */
   --logo-press-duration: 140ms;
   --logo-press-scale: .94;
+}
+
+/* The words' own tokens, on the wordmark: reveal fills one letter at a time, left to
+ * right. It starts with the mark's fill and is kept short on purpose, half a second in
+ * all, so it supports the mark instead of competing with it; the mark is still filling
+ * after the words are done. To start the words later, raise --logo-reveal-start. */
+.logo-wordmark {
+  --logo-reveal-start: 0ms; /* when the first letter starts to fill; 0 is with the mark */
+  --logo-reveal-duration: 500ms; /* from the first letter starting to the last finishing */
+  --logo-reveal-letter: 240ms; /* how long one letter takes, bottom to top */
 }
 
 /* ── 2. Structure ──────────────────────────────────────────────────────────── */
@@ -90,12 +105,6 @@
   fill: currentColor;
 }
 
-/* Position in the draw order. Reorder the draw by changing these numbers. */
-.logo-mark__ring { --part: 0; }
-.logo-mark__spine { --part: 1; }
-.logo-mark__bar { --part: 2; }
-.logo-mark__stem { --part: 3; }
-
 .logo-mark__spine {
   /* Rotate about the middle of the mark. The viewBox is centred on 0 0, and for
    * transform-box: view-box the reference box starts at the user-space origin rather
@@ -111,17 +120,33 @@
  * who asked for less motion never receives it. */
 
 /* ·· draw ····································································
- * On a full page load the strokes draw in. Nothing is hidden until the animation
- * itself starts, and a CSS animation cannot be left half-run by a script that never
- * loads, so this fails safe the way the load reveal in motion.css does. pathLength="1"
- * on each path means one keyframe serves every size and weight. The brief opacity step
- * at the start keeps the round cap of a zero-length dash from showing as a dot while a
- * stroke waits for its delay. */
+ * On a full page load the mark fills like fluid injected into a mould. The strokes are
+ * the channels: the fluid enters at the top-left of the ring, forks at the spine, forks
+ * again at the crossbar, and fills the stem last. Each piece of stroke is a segment that
+ * draws itself in along its own path, in the direction the fluid flows, and starts
+ * where the fluid reaches it. The round cap on a drawing stroke is the fluid's front.
+ *
+ * The timing is data, not CSS: logo-fill.ts works out the forks and hands each segment
+ * its --start and --dur (fractions of --logo-fill-duration) and, where a fork changed
+ * the front's speed along it, an --ease that is a linear() curve of those speeds. Where
+ * the browser does not know linear(), every segment fills at one steady speed instead.
+ *
+ * Nothing is hidden until the animation itself starts, and a CSS animation cannot be
+ * left half-run by a script that never loads, so this fails safe the way the load
+ * reveal in motion.css does. pathLength="1" on each path means one keyframe serves every
+ * segment, size and weight. The brief opacity step at the start keeps the round cap of a
+ * zero-length dash from showing as a dot while a segment waits for its fluid. */
 @media (prefers-reduced-motion: no-preference) {
-  .logo-mark[data-motion~="draw"] path {
+  .logo-mark[data-motion~="draw"] .logo-mark__seg {
     stroke-dasharray: 1;
-    animation: logo-draw var(--logo-draw-duration) var(--logo-ease)
-      calc(var(--logo-draw-delay) + var(--part) * var(--logo-draw-stagger)) both;
+    animation: logo-draw calc(var(--dur) * var(--logo-fill-duration)) linear
+      calc(var(--start) * var(--logo-fill-duration)) both;
+  }
+
+  @supports (animation-timing-function: linear(0, 1)) {
+    .logo-mark[data-motion~="draw"] .logo-mark__seg {
+      animation-timing-function: var(--ease, linear);
+    }
   }
 }
 
@@ -129,6 +154,34 @@
   from { stroke-dashoffset: 1; opacity: 0; }
   1% { opacity: 1; }
   to { stroke-dashoffset: 0; opacity: 1; }
+}
+
+/* ·· reveal ···································································
+ * On a full page load each letter of the words fills from the bottom, one after another,
+ * left to right, like a row of cavities taking fluid in turn. Only the wordmark has this,
+ * and only on load; nothing in it answers the visitor.
+ *
+ * Each letter is a group (Wordmark.tsx) that carries its place as --i and the letter count
+ * as --n on the svg. A letter starts at --logo-reveal-start plus its place along the
+ * remaining time, so the first begins at the start and the last ends exactly
+ * --logo-reveal-duration later. A clip, not a mask or a scale: the letter never changes size and the
+ * clip is a plain rectangle. Nothing is hidden until the animation itself starts, and a
+ * CSS animation cannot be left half-run by a script that never loads, so this fails safe
+ * the same way the mark's fill does. */
+@media (prefers-reduced-motion: no-preference) {
+  .logo-wordmark[data-motion~="reveal"] .logo-wordmark__letter {
+    animation: logo-reveal var(--logo-reveal-letter) cubic-bezier(.3, .7, .2, 1)
+      calc(
+        var(--logo-reveal-start) + var(--i) *
+          (var(--logo-reveal-duration) - var(--logo-reveal-letter)) /
+          (var(--n) - 1)
+      ) both;
+  }
+}
+
+@keyframes logo-reveal {
+  from { clip-path: inset(100% 0 0 0); }
+  to { clip-path: inset(0 0 0 0); }
 }
 
 /* ·· resolve ··································································

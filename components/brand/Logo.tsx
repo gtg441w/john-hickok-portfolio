@@ -11,7 +11,8 @@ type Props = {
   /** Leave the words out and render the mark alone. */
   wordmark?: boolean
   markWeight?: MarkWeight
-  /** Behaviours the mark runs: any of LOGO_MOTIONS. Default none. */
+  /** Behaviours the lockup runs: any of LOGO_MOTIONS. `reveal` is the words'; the rest
+   * are the mark's. Default none. */
   motion?: readonly LogoMotion[]
   /** Passed to the mark as data-state, for script-driven states. */
   state?: string
@@ -28,7 +29,9 @@ type Props = {
  * `--logo-size` is the single scale knob, set inline so the lockup renders at the
  * right size before any stylesheet loads and so CSS can override it per breakpoint.
  *
- * Only the mark moves. `motion` and `state` go to it and never to the words. */
+ * The mark answers hover, focus and press and takes `state`; the words do none of that.
+ * They have one behaviour, `reveal`, which runs once on a full page load, briefly, while
+ * the mark's fill is still going. */
 export default function Logo({ size = 32, wordmark = true, markWeight, motion, state, className }: Props) {
   return (
     <span
@@ -36,7 +39,7 @@ export default function Logo({ size = 32, wordmark = true, markWeight, motion, s
       style={{ '--logo-size': `${size}px` } as CSSProperties}
     >
       <LogoMark size={size} weight={markWeight} motion={motion} state={state} />
-      {wordmark ? <Wordmark size={size} /> : null}
+      {wordmark ? <Wordmark size={size} reveal={motion?.includes('reveal')} /> : null}
     </span>
   )
 }

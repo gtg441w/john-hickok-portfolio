@@ -166,9 +166,17 @@
  * the bar centred on the page rather than centred in whatever the mark leaves over;
  * the mark takes the left track, the right one stays empty.
  *
- * Narrow (< 720px, the site's existing breakpoint): the mark centres at the top and
- * the bar docks to the bottom of the viewport, where a thumb reaches it. Docked, it is
- * fixed, so the page reserves room beneath its last line of content. */
+ * Narrow (< 52rem = 832px): the mark centres at the top and the bar docks to the
+ * bottom of the viewport, where a thumb reaches it. Docked, it is fixed, so the page
+ * reserves room beneath its last line of content.
+ *
+ * WHY 52rem. The row layout needs the centred bar to clear the lockup by 16px. With
+ * the lockup 201px wide, the bar 333–335px wide (it widens a little when the active
+ * link is bold) and 2vw side padding, that point is 801px. 52rem leaves ~31px there,
+ * so there is ~15px to spare for a webfont that has not loaded yet and for a classic
+ * scrollbar, which takes ~15px from the layout but not from the media query. In rem,
+ * so the browser's text-size setting moves it with the text. If the bar gains a link,
+ * re-measure: gap = (viewport - bar) / 2 - padding - lockup, and keep it >= 16. */
 .site-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -221,7 +229,7 @@
 
 button.theme-toggle:hover { background: color-mix(in oklab, currentColor 10%, transparent); }
 
-@media (max-width: 719px) {
+@media (max-width: 51.999rem) {
   .site-header {
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;
@@ -272,8 +280,45 @@ button.theme-toggle:hover { background: color-mix(in oklab, currentColor 10%, tr
   .site-header .site-nav { transition: none; }
 }
 
-@media (max-width: 719px) and (prefers-reduced-motion: reduce) {
+@media (max-width: 51.999rem) and (prefers-reduced-motion: reduce) {
   .site-header .site-nav[data-hidden]:not(:focus-within) { transform: translateX(-50%); }
+}
+
+/* ── Site header entrance ──────────────────────────────────────────────────────
+ * The logo fills in (logo.css) from the first frame; the bar follows, dropping 20px
+ * into place and fading in, and lands at the same moment the logo finishes. Docked at
+ * the bottom it rises 20px instead, so it always arrives from the side it sits on.
+ *
+ * --intro-duration is the one number both read: how long the logo takes from first
+ * fluid to last. The bar's own travel is --enter-duration, and it starts that long
+ * before the end, so retiming the logo retimes the bar with it. Short on purpose: a
+ * long travel moves a blurred surface across the whole viewport, and the blur is the
+ * expensive part on a mid-tier phone. Only translate and opacity move; the glass
+ * never changes size.
+ *
+ * Pure CSS, so there is nothing to hydrate and nothing to flash: the 'backwards' fill
+ * holds the bar at its start state through the delay and hands back to its own styles
+ * when it lands. It plays on a full page load only, because the header lives in the
+ * root layout and client-side navigation never remounts it. `translate` is its own
+ * property, so it composes with the `transform` the docked bar uses to hide on scroll.
+ * Visitors who ask for less motion get no entrance at all. */
+:root { --intro-duration: 1500ms; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .site-header .site-nav {
+    --enter-y: -20px;
+    --enter-duration: 700ms;
+    animation: site-nav-in var(--enter-duration) cubic-bezier(.2, .7, .2, 1)
+      calc(var(--intro-duration) - var(--enter-duration)) backwards;
+  }
+}
+
+@media (max-width: 51.999rem) and (prefers-reduced-motion: no-preference) {
+  .site-header .site-nav { --enter-y: 20px; }
+}
+
+@keyframes site-nav-in {
+  from { translate: 0 var(--enter-y); opacity: 0; }
 }
 
 /* ── Card clip ─────────────────────────────────────────────────────────────────

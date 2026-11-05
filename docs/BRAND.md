@@ -74,33 +74,39 @@ input or report status, and a logo does neither.
 
 ## Motion
 
-Three behaviours, called recipes. All of them are on the mark; none are on the words, and
-none are on anything blurred. Timing comes from `--ease-glass`. Everything is CSS, in
+Four behaviours, called recipes. Three are on the mark. One, `reveal`, is on the words, and
+it is the only thing that ever moves them. None are on anything blurred. Timing comes from `--ease-glass`. Everything is CSS, in
 `components/brand/logo.css`, so the components stay server components, in line with the
 minimal-client-islands rule in `CLAUDE.md`.
 
 | Recipe | Trigger | What happens |
 |---|---|---|
-| `draw` | Full page load | The four strokes draw themselves in, 640ms each, staggered 120ms. Does not replay on client-side navigation, because the header never remounts. |
+| `draw` | Full page load | The mark fills like fluid injected into a mould, 1.5s from first fluid to last. It enters at the top-left of the ring, forks at the spine's top and again at the crossbar, fills the ring from the bottom as well, and fills the H's left stem last. Does not replay on client-side navigation, because the header never remounts. |
 | `resolve` | Hover or keyboard focus on the trigger | The spine straightens from 15° to upright over 420ms and leans back on release. The slanted H and D become plain, level letters. |
 | `press` | The trigger is held | The mark scales to 94% over 140ms. |
+| `reveal` | Full page load | The twelve letters of the words fill from the bottom, one after another, left to right, each taking 240ms, the first starting with the mark's fill and the last ending at 500ms. Deliberately brief, so the mark's fill, which runs to 1.5s, stays the main event. Plays once and answers nothing; the words never respond to hover, focus or press. |
 
 ### Built to be changed
 
 The logo's behaviour is meant to be revisited, so it is split along the lines you will
 want to change it on:
 
-- **Tokens.** Every number (durations, stagger, angle, scale) is a custom property at the
+- **Tokens.** Every number (durations, angle, scale) is a custom property at the
   top of `logo.css`. Retuning a feel is a one-line edit.
 - **Recipes are independent.** Each is one block in `logo.css`, keyed on its name in
   `data-motion`. Changing or removing one cannot affect the others.
-- **Which ones run is a prop.** `<Logo motion={LOGO_MOTIONS} />` runs all three;
+- **Which ones run is a prop.** `<Logo motion={LOGO_MOTIONS} />` runs all four;
   `motion={['resolve']}` runs one; leaving it off keeps the mark still. `LOGO_MOTIONS`
   (`logo-motion.ts`) is the single list of names.
 - **The trigger is explicit.** `data-logo-trigger` on the link is what the visitor
   hovers, focuses or presses, so the hit area is the link's, not the drawing's.
-- **The parts are addressable.** `.logo-mark__ring`, `__spine`, `__bar` and `__stem`, each
-  with a `--part` number that sets its place in the draw order.
+- **The parts are addressable.** `.logo-mark__ring`, `__spine`, `__bar` and `__stem`. Each
+  is a path, or, with `draw` on, a group of timed segments (`.logo-mark__seg`), because the
+  fill forks and one stroke cannot. The class is on the part either way.
+- **The fill is worked out, not authored.** `logo-fill.ts` simulates constant-rate flow
+  through the strokes, sharing it between fronts at every fork, and hands each segment its
+  `--start`, `--dur` and `--ease` as fractions of the whole fill. It reads the same numbers
+  as the drawing, so it holds at both weights.
 - **There is a hook for state.** `data-state` on the mark is for script to set (loading,
   error). No recipe reads it yet; `logo.css` ends with a template for the first.
 - **Tests pin behaviour, not timing.** `e2e/logo.spec.ts` checks that hover and focus
@@ -112,7 +118,9 @@ want to change it on:
 |---|---|
 | Speed up or slow down the resolve | `--logo-resolve-duration` |
 | Turn the spine further, or less | `--logo-resolve-angle` |
-| Change the draw's pace or order | `--logo-draw-duration`, `--logo-draw-stagger`, the `--part` numbers |
+| Speed up or slow down the draw | `--intro-duration` in `globals.css`. The mark's fill and the header's bar both end on it. |
+| Start the words earlier or later, make the reveal longer or shorter, or give each letter more time | `--logo-reveal-start`, `--logo-reveal-duration`, `--logo-reveal-letter`. To finish the words with the mark, set the start to 1000ms. |
+| Change what fills last, or how long the side branches wait | `BRANCH_SHARE` in `logo-fill.ts`: the share of the flow the crossbar and the stem take, against 1 for the ring and spine. Lower and the stem lands later. |
 | Make the press stronger or softer | `--logo-press-scale` |
 | Turn a behaviour off everywhere | Remove its name from the `motion` prop in `SiteHeader.tsx` |
 | Run different behaviours in different places | Pass a different `motion` list to each `<Logo>` |
@@ -121,7 +129,7 @@ want to change it on:
 
 Rules that hold whatever you change:
 
-- Leave the words still. Motion on type reads as a loading state.
+- Leave the words still. Motion on type reads as a loading state. The one exception is `reveal`, once, on a full page load: nothing else about the words may move, and nothing about them may answer the visitor.
 - Never animate blur or `backdrop-filter`, and never scale a blurred surface
   (`motion.css`). The logo is not glass, so scale is allowed on it, but keep it off
   anything blurred that it sits inside.
@@ -130,8 +138,8 @@ Rules that hold whatever you change:
 
 ### Reduced motion
 
-`prefers-reduced-motion: reduce` removes the draw-in entirely (the mark is simply
-there) and makes hover and focus change state at once instead of easing. The mark still
+`prefers-reduced-motion: reduce` removes the draw-in and the reveal entirely (the mark and
+the words are simply there) and makes hover and focus change state at once instead of easing. The mark still
 answers; it does not travel to do it. Verified in the browser: animation `none`,
 transition `0s`.
 
@@ -153,6 +161,7 @@ transition `0s`.
 |---|---|
 | `components/brand/logo-geometry.ts` | The construction: constants and the four paths for each weight |
 | `components/brand/wordmark-paths.ts` | The outlined wordmark, generated once from the approved artwork. Do not hand-edit. |
+| `components/brand/wordmark-letters.ts` | Which contours of those paths make which letter, as lists of numbers, so `reveal` can fill letters one at a time. If the artwork is regenerated and the contour count changes, the reveal switches itself off until this is redone. |
 | `components/brand/{Logo,LogoMark,Wordmark}.tsx` | The three components |
 | `components/brand/logo.css` | The logo's layout, colour inheritance and every behaviour: tokens, structure, recipes |
 | `components/brand/logo-motion.ts` | The list of behaviour names (`LOGO_MOTIONS`) |

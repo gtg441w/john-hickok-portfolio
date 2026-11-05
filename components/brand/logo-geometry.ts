@@ -41,7 +41,9 @@ export const BOLD_BELOW_PX = 28
 
 const n = (v: number) => (Math.abs(v) < 0.005 ? 0 : v).toFixed(2)
 
-export function markGeometry(weight: MarkWeight) {
+/** Every derived number the drawing is built from, solved once. `markGeometry` turns
+ *  them into path strings; `logo-fill.ts` reuses them to find where the strokes meet. */
+export function solveMark(weight: MarkWeight) {
   const w = WEIGHTS[weight]
   const rc = MARK.outer - w / 2 // centreline radius of the ring and the stem
   const t = Math.tan((MARK.slant * Math.PI) / 180)
@@ -51,12 +53,6 @@ export function markGeometry(weight: MarkWeight) {
   // The ring stops short of the stem by `gap` of clear space; the two ends are round
   // caps, so the centre-to-centre distance is the gap plus one stroke.
   const delta = 2 * Math.asin((MARK.gap + w) / (2 * rc))
-
-  const pt = (a: number): [number, number] => [rc * Math.cos(a), -rc * Math.sin(a)]
-  const stemA = pt(Math.PI - phi)
-  const stemB = pt(Math.PI + phi)
-  const ringA = pt(Math.PI - (phi + delta))
-  const ringB = pt(-(Math.PI - (phi + delta)))
 
   // Spine: x = spineX - t·y, trimmed where it meets the ring's centreline.
   const a = 1 + t * t
@@ -69,6 +65,24 @@ export function markGeometry(weight: MarkWeight) {
 
   // Bar: from the stem's centreline to the spine.
   const barStart = -Math.sqrt(rc * rc - MARK.barY * MARK.barY)
+
+  return { w, rc, phi, delta, yTop, yBot, spineAt, barStart }
+}
+
+/** A point on the ring's centreline at angle `a`, counted from 3 o'clock, y up. */
+export const ringPoint = (rc: number, a: number): [number, number] => [rc * Math.cos(a), -rc * Math.sin(a)]
+
+/** Format a coordinate for a path string. Exported so every path is written one way. */
+export const fmt = n
+
+export function markGeometry(weight: MarkWeight) {
+  const { w, rc, phi, delta, yTop, yBot, spineAt, barStart } = solveMark(weight)
+
+  const pt = (a: number) => ringPoint(rc, a)
+  const stemA = pt(Math.PI - phi)
+  const stemB = pt(Math.PI + phi)
+  const ringA = pt(Math.PI - (phi + delta))
+  const ringB = pt(-(Math.PI - (phi + delta)))
 
   return {
     stroke: w,
