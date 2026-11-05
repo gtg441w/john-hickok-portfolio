@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import type { CSSProperties } from 'react'
 
 import { Logo, LOGO_MOTIONS } from '@/components/brand'
 import FloatingBar from './FloatingBar'
@@ -6,12 +7,17 @@ import NavLink from './NavLink'
 import ThemeToggle from './ThemeToggle'
 
 /* Two elements: the logo and the floating bar. Layout lives in globals.css
- * (§ Site header) because it changes at a breakpoint — above 52rem the logo sits
+ * (§ Site header) because it changes at a breakpoint — above 62rem the logo sits
  * top-left and the bar is centred on the page; below it the logo centres at the top
  * and the bar docks to the bottom of the viewport, within thumb reach. */
+/* The header's one size: the logo's height, the floating bar's height, and every target
+ * in either. 44px is Apple's minimum for a thumb, and the logo is a target too — it is
+ * the way home. Published to CSS as --header-control so the two cannot drift apart. */
+const HEADER_CONTROL = 44
+
 export default function SiteHeader() {
   return (
-    <header className="site-header">
+    <header className="site-header" style={{ '--header-control': `${HEADER_CONTROL}px` } as CSSProperties}>
       {/* The logo is the way home — the site's only home control, by convention
         * rather than an icon. The link is sized to the logo, not to its grid slot,
         * so clicking the empty header space beside it does nothing.
@@ -27,7 +33,7 @@ export default function SiteHeader() {
         * plays on a full page load only, because client-side navigation never
         * remounts the header. */}
       <Link href="/" className="home-mark" aria-label="Hickok Design, home" data-logo-trigger>
-        <Logo size={32} motion={LOGO_MOTIONS} />
+        <Logo size={HEADER_CONTROL} motion={LOGO_MOTIONS} />
       </Link>
 
       <FloatingBar>
