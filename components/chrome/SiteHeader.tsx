@@ -6,7 +6,7 @@ import NavLink from './NavLink'
 import ThemeToggle from './ThemeToggle'
 
 /* Two elements: the logo and the floating bar. Layout lives in globals.css
- * (§ Site header) because it changes at a breakpoint — above 720px the logo sits
+ * (§ Site header) because it changes at a breakpoint — above 52rem the logo sits
  * top-left and the bar is centred on the page; below it the logo centres at the top
  * and the bar docks to the bottom of the viewport, within thumb reach. */
 export default function SiteHeader() {

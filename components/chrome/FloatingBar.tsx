@@ -15,7 +15,7 @@ const EDGE = 80
  * of the way while you read: scrolling down hides it, scrolling up brings it back.
  *
  * This component only reports direction, as data-hidden. Whether that means anything
- * is CSS's decision (globals.css § Site header): it applies below 720px only, never
+ * is CSS's decision (globals.css § Site header): it applies below 52rem only, never
  * while focus is inside the bar, and never under prefers-reduced-motion. The children
  * stay server-rendered; only this wrapper is a client island. */
 export default function FloatingBar({ children }: { children: ReactNode }) {
