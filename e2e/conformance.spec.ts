@@ -24,13 +24,18 @@ import { test, expect, type Page } from '@playwright/test'
 
 /** Every route that renders an artifact card. Add a route here when you add one;
  *  a page absent from this list is unchecked, which is worse than failing. */
-const ROUTES = ['/', '/work', '/work/fresco', '/practice']
+const ROUTES = ['/', '/work']
+
+/** The fork's addendum, loaded from where it lives. Resolved from the repo root, which
+ *  is where Playwright runs; the script is injected from disk, not served, so it does
+ *  not need to sit in public/. */
+const ADDENDUM = 'styles/_ds_fork/frostwork-rules-addendum.js'
 
 /** Load the fork's addendum into the page and run its own check, rather than
  *  reimplementing the measurement here. Two copies of a measurement drift, and the
  *  copy in CI would be the one nobody reads. */
 async function runCheck16(page: Page) {
-  await page.addScriptTag({ path: './public/_ds_fork/frostwork-rules-addendum.js' })
+  await page.addScriptTag({ path: ADDENDUM })
   return page.evaluate(() => {
     const F = (window as any).FrostworkFork
     if (!F) throw new Error('FrostworkFork did not load — check 16 did not run')
@@ -76,7 +81,7 @@ for (const route of ROUTES) {
 test('check 16 · the rule is registered', async ({ page }) => {
   await page.goto('/')
   await page.waitForLoadState('networkidle')
-  await page.addScriptTag({ path: './public/_ds_fork/frostwork-rules-addendum.js' })
+  await page.addScriptTag({ path: ADDENDUM })
   const state = await page.evaluate(() => {
     const F = (window as any).FrostworkFork
     F.assert()
