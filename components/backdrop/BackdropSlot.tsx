@@ -174,8 +174,21 @@ export default function BackdropSlot() {
     }
   }, [theme])
 
+  /* stage-scrim (styles/_ds_fork/frostwork-blur-first.css § 2) goes HERE, on the
+   * media's own fixed host, not on BackdropStage. Its ::before is positioned and the
+   * canvas is not, so it paints over the canvas; on the stage it would paint under
+   * this fixed host and do nothing, and it would span the whole document instead of
+   * the viewport. This is the one surface that still sets text over media, so it is
+   * the scrim's one caller. The tone this canvas publishes is the unscrimmed paint:
+   * under light ink that is the brighter, so the worse, case.
+   *
+   * MEASURED 2026-11-05, against the composite (canvas + scrim, worst 8x64px window),
+   * for text set straight on this stage on /, /work, /about, /experience, /connect:
+   * dark chrome worst 6.69:1 (muted ink); light chrome worst 4.57:1 (muted ink over
+   * the bottom band, where the .28 tone scrim lands). Both hold AA. Light's margin is
+   * thin and owed to a taste value, so re-measure if --scrim or the palette moves. */
   return (
-    <div ref={hostRef} className="stage-media" style={{ position: 'fixed', inset: 0 }}>
+    <div ref={hostRef} className="stage-media stage-scrim" style={{ position: 'fixed', inset: 0 }}>
       <canvas ref={canvasRef} style={{ display: 'block' }} />
     </div>
   )

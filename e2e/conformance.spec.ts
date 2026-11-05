@@ -25,6 +25,8 @@ import { test, expect, type Page } from '@playwright/test'
 /** Every route that renders an artifact card. Add a route here when you add one;
  *  a page absent from this list is unchecked, which is worse than failing. */
 const ROUTES = ['/', '/work']
+/* Not yet: /practice (docs/COMPONENT_INVENTORY.md) — add it when app/practice lands,
+ * if it renders artifact cards; the per-route count below fails a route that has none. */
 
 /** The fork's addendum, loaded from where it lives. Resolved from the repo root, which
  *  is where Playwright runs; the script is injected from disk, not served, so it does
@@ -94,21 +96,29 @@ test('check 16 · the rule is registered', async ({ page }) => {
 /** Contrast on the backdrop stage — the one surface that still sets text over media,
  *  and therefore the only caller of the scrim. Bounded media removed the other five;
  *  this is what is left to measure. */
-test('scrim holds the dark-chrome contract', async ({ page }) => {
-  await page.goto('/')
-  await page.waitForLoadState('networkidle')
-  const scrim = await page.evaluate(() => {
-    const stage = document.querySelector('.stage-scrim')
-    if (!stage) return null
-    const v = getComputedStyle(stage).getPropertyValue('--scrim').trim()
-    const before = getComputedStyle(stage, '::before')
-    return { alpha: parseFloat(v), painted: before.backgroundImage !== 'none' }
+test.describe('in dark chrome', () => {
+  /* The contract is a dark-chrome one, and the browser defaults to light, where
+   * `.light .stage-scrim` lowers --scrim to .28 as tone on purpose. Measured in light,
+   * this would test the wrong mode; the OS preference picks the mode when none is
+   * stored (lib/theme.ts), so emulating it is how a dark-chrome visitor arrives. */
+  test.use({ colorScheme: 'dark' })
+
+  test('scrim holds the dark-chrome contract', async ({ page }) => {
+    await page.goto('/')
+    await page.waitForLoadState('networkidle')
+    const scrim = await page.evaluate(() => {
+      const stage = document.querySelector('.stage-scrim')
+      if (!stage) return null
+      const v = getComputedStyle(stage).getPropertyValue('--scrim').trim()
+      const before = getComputedStyle(stage, '::before')
+      return { alpha: parseFloat(v), painted: before.backgroundImage !== 'none' }
+    })
+    expect(scrim, 'no .stage-scrim on the homepage').not.toBeNull()
+    /* .5386 is the solve; anything below it cannot hold pure white under the .18
+       ceiling. Not a style preference — the derivation is in the fork CSS § 2. */
+    expect(scrim!.alpha).toBeGreaterThanOrEqual(0.5386)
+    /* The scrim must actually PAINT. It shipped once as a class that lost the cascade to
+       an inline background shorthand and never rendered — correct rule, zero effect. */
+    expect(scrim!.painted, 'the scrim pseudo-element is not painting').toBe(true)
   })
-  expect(scrim, 'no .stage-scrim on the homepage').not.toBeNull()
-  /* .5386 is the solve; anything below it cannot hold pure white under the .18
-     ceiling. Not a style preference — the derivation is in the fork CSS § 2. */
-  expect(scrim!.alpha).toBeGreaterThanOrEqual(0.5386)
-  /* The scrim must actually PAINT. It shipped once as a class that lost the cascade to
-     an inline background shorthand and never rendered — correct rule, zero effect. */
-  expect(scrim!.painted, 'the scrim pseudo-element is not painting').toBe(true)
 })
