@@ -166,17 +166,18 @@
  * the bar centred on the page rather than centred in whatever the mark leaves over;
  * the mark takes the left track, the right one stays empty.
  *
- * Narrow (< 52rem = 832px): the mark centres at the top and the bar docks to the
+ * Narrow (< 62rem = 992px): the mark centres at the top and the bar docks to the
  * bottom of the viewport, where a thumb reaches it. Docked, it is fixed, so the page
  * reserves room beneath its last line of content.
  *
- * WHY 52rem. The row layout needs the centred bar to clear the lockup by 16px. With
- * the lockup 201px wide, the bar 333–335px wide (it widens a little when the active
- * link is bold) and 2vw side padding, that point is 801px. 52rem leaves ~31px there,
- * so there is ~15px to spare for a webfont that has not loaded yet and for a classic
- * scrollbar, which takes ~15px from the layout but not from the media query. In rem,
- * so the browser's text-size setting moves it with the text. If the bar gains a link,
- * re-measure: gap = (viewport - bar) / 2 - padding - lockup, and keep it >= 16. */
+ * WHY 62rem. The row layout needs the centred bar to clear the lockup by 16px. With
+ * the lockup 277px wide (44px tall, --header-control), the bar 329–331px wide (it
+ * widens a little when the active link is bold) and 2vw side padding, that point is
+ * 955px. 62rem leaves ~37px there, so there is room to spare for a webfont that has
+ * not loaded yet and for a classic scrollbar, which takes ~15px from the layout but
+ * not from the media query. In rem, so the browser's text-size setting moves it with
+ * the text. If the bar gains a link or the header control changes size, re-measure:
+ * gap = (viewport - bar) / 2 - padding - lockup, and keep it >= 16. */
 .site-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -187,17 +188,39 @@
 
 .site-header .home-mark {
   grid-column: 1;
-  padding: 4px 0;
 }
 
+/* ONE HEIGHT FOR THE LOGO AND THE BAR: --header-control (SiteHeader.tsx), 44px, at
+ * every width. The lockup is drawn at it, so the home link is exactly that tall.
+ *
+ * The bar is exactly that tall too, and so is every target inside it, which is why
+ * the bar has no block padding and its controls reach 1px past its content box over
+ * the border: a 1px glass border would otherwise take each target to 42px. The
+ * hover and active wash stays inset 4px top and bottom (a transparent border, with
+ * the background clipped to the padding box) so it does not paint over the rim. */
 .site-header .site-nav {
   grid-column: 2;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 6px 6px 10px;
+  height: var(--header-control);
+  padding: 0 0 0 4px;
   border-radius: 999px;
   white-space: nowrap;
+}
+
+.site-nav .nav-link,
+.site-nav .nav-link:hover {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  height: var(--header-control);
+  margin-block: -1px;
+  padding: 0 12px;
+  border: 0;
+  border-block: 4px solid transparent;
+  background-clip: padding-box;
 }
 
 .site-nav__divider {
@@ -215,12 +238,16 @@
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  box-sizing: border-box;
+  width: var(--header-control);
+  height: var(--header-control);
+  margin-block: -1px;
   padding: 0;
-  border: 0;
+  /* Inset the wash to a 36px circle; the 44px target is the whole box. */
+  border: 4px solid transparent;
   border-radius: 999px;
   background: transparent;
+  background-clip: padding-box;
   color: var(--glass-text);
   font-family: inherit;
   cursor: pointer;
@@ -229,7 +256,7 @@
 
 button.theme-toggle:hover { background: color-mix(in oklab, currentColor 10%, transparent); }
 
-@media (max-width: 51.999rem) {
+@media (max-width: 61.999rem) {
   .site-header {
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;
@@ -245,7 +272,6 @@ button.theme-toggle:hover { background: color-mix(in oklab, currentColor 10%, tr
     bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     transform: translateX(-50%);
     max-width: calc(100vw - 32px);
-    padding: 4px;
     transition: transform 280ms cubic-bezier(.2, .6, .2, 1);
   }
 
@@ -258,19 +284,23 @@ button.theme-toggle:hover { background: color-mix(in oklab, currentColor 10%, tr
     transform: translate(-50%, calc(100% + 16px + env(safe-area-inset-bottom, 0px)));
   }
 
-  /* 44px targets on a phone: Apple's minimum for a thumb, above WCAG's 24px floor.
-   * min-height, not height, so the inline padding in NavLink.tsx still applies. */
-  .site-nav .nav-link {
-    box-sizing: border-box;
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-  }
-
-  .site-nav .theme-toggle { width: 44px; height: 44px; }
-
   /* Room for the docked bar: its height plus the gap it floats at. */
   body { padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* THE SMALLEST PHONES: the bar's spacing gives way, never its targets. At its
+ * ordinary spacing the bar is ~331px wide with the active link bold, and docked it has
+ * 100vw - 32px, so it stops fitting below ~363px (320 and 360px phones). Under 23rem
+ * the link padding drops to 8px, the gaps close, and the divider goes; the toggle is
+ * a round icon among text links, which separates it on its own. That takes the bar to
+ * ~280px against 288px at 320. Every target stays --header-control tall, the
+ * narrowest link stays over 60px wide, and the labels keep their size. If the bar
+ * gains a link, re-measure at 320px. */
+@media (max-width: 22.999rem) {
+  .site-header .site-nav { gap: 0; }
+  .site-nav .nav-link,
+  .site-nav .nav-link:hover { padding: 0 8px; }
+  .site-nav__divider { display: none; }
 }
 
 /* Reduced motion: the bar stays put. Hiding it without the slide would be an abrupt
@@ -280,7 +310,7 @@ button.theme-toggle:hover { background: color-mix(in oklab, currentColor 10%, tr
   .site-header .site-nav { transition: none; }
 }
 
-@media (max-width: 51.999rem) and (prefers-reduced-motion: reduce) {
+@media (max-width: 61.999rem) and (prefers-reduced-motion: reduce) {
   .site-header .site-nav[data-hidden]:not(:focus-within) { transform: translateX(-50%); }
 }
 
@@ -313,7 +343,7 @@ button.theme-toggle:hover { background: color-mix(in oklab, currentColor 10%, tr
   }
 }
 
-@media (max-width: 51.999rem) and (prefers-reduced-motion: no-preference) {
+@media (max-width: 61.999rem) and (prefers-reduced-motion: no-preference) {
   .site-header .site-nav { --enter-y: 20px; }
 }
 
