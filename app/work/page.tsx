@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 
 import { getPublishedArtifacts, kindLine, metaLine } from '@/lib/content'
 import ArtifactCard from '@/components/artifact/ArtifactCard'
+import { cardPreview } from '@/lib/media'
 
 export const metadata: Metadata = {
   title: 'Collection · Hickok Design',
@@ -66,6 +67,7 @@ export default function CollectionPage() {
                 framing={a.framing}
                 meta={metaLine(a)}
                 still={a.hero}
+                preview={cardPreview(a)}
               />
             ))}
           </div>

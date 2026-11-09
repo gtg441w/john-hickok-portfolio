@@ -2,6 +2,7 @@ import type { Still } from '@/lib/content.schema'
 import ArtifactCard from '@/components/artifact/ArtifactCard'
 import Rail from '@/components/artifact/Rail'
 import { getPublishedArtifacts, kindLine, metaLine } from '@/lib/content'
+import { cardPreview } from '@/lib/media'
 
 function still(src: string, width: number, height: number): Still {
   return { src, alt: '', width, height, chromeMode: 'dark', scrimStrength: 0.62 }
@@ -65,6 +66,7 @@ export default function HomePage() {
         title: a.title.split(': ')[0],
         kind: kindLine(a),
         still: a.hero,
+        preview: cardPreview(a),
       })),
     ...frameworks.map(fw => ({
       key: fw.title,
@@ -72,6 +74,7 @@ export default function HomePage() {
       title: fw.title,
       kind: 'Framework',
       still: still(fw.src, fw.w, fw.h),
+      preview: undefined,
     })),
   ].slice(0, frameworks.length)
 
@@ -105,6 +108,7 @@ export default function HomePage() {
             meta={metaLine(heroArtifact)}
             still={heroArtifact.hero}
             clip={heroArtifact.heroClip}
+            preview={cardPreview(heroArtifact)}
           />
         ) : (
           <ArtifactCard href="/work" size="lg" featured {...placeholderHero} />
@@ -112,7 +116,15 @@ export default function HomePage() {
 
         <Rail title="Frameworks" caption="rail · horizontal · snap · top of the hierarchy" minColumnWidth={248}>
           {frameworkCards.map(fw => (
-            <ArtifactCard key={fw.key} href={fw.href} size="sm" title={fw.title} kind={fw.kind} still={fw.still} />
+            <ArtifactCard
+              key={fw.key}
+              href={fw.href}
+              size="sm"
+              title={fw.title}
+              kind={fw.kind}
+              still={fw.still}
+              preview={fw.preview}
+            />
           ))}
         </Rail>
 
@@ -125,6 +137,7 @@ export default function HomePage() {
               title={a.title}
               kind={kindLine(a)}
               still={a.hero}
+              preview={cardPreview(a)}
             />
           ))}
           {pendingProjects.map((p) => (

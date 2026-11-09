@@ -2,7 +2,9 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 
 import { getArtifact, getPublishedSlugs, getSections, kindLine, metaLine } from '@/lib/content'
-import ArtifactSection, { MediaFigure } from '@/components/artifact/ArtifactSection'
+import ArtifactSection from '@/components/artifact/ArtifactSection'
+import MediaCarousel from '@/components/artifact/MediaCarousel'
+import { articleSlides } from '@/lib/media'
 import Walkthrough from '@/components/walkthrough/Walkthrough'
 import { getWalkthrough } from '@/lib/walkthrough'
 
@@ -41,7 +43,8 @@ export default async function ArtifactPage({ params }: { params: Promise<{ slug:
   if (!artifact || !artifact.published) notFound()
 
   const meta = metaLine(artifact)
-  const { sections, unplaced } = getSections(artifact)
+  const sections = getSections(artifact)
+  const slides = articleSlides(artifact)
 
   return (
     <main>
@@ -54,40 +57,6 @@ export default async function ArtifactPage({ params }: { params: Promise<{ slug:
           margin: '0 auto',
         }}
       >
-        {/* First thing on the page, above the title. The video is portrait, so its box is
-          * capped by height and centred rather than stretched to the column. The poster
-          * is a full Still, so the box is reserved from its width and height and nothing
-          * shifts when the video loads. */}
-        {artifact.video && (
-          <figure style={{ margin: 0, display: 'grid', justifyItems: 'center' }}>
-            <video
-              controls
-              playsInline
-              preload="metadata"
-              poster={artifact.video.poster.src}
-              aria-label={artifact.video.title}
-              width={artifact.video.poster.width}
-              height={artifact.video.poster.height}
-              style={{
-                width: 'auto',
-                height: 'auto',
-                maxWidth: '100%',
-                maxHeight: 'min(80vh, 720px)',
-                aspectRatio: `${artifact.video.poster.width} / ${artifact.video.poster.height}`,
-                display: 'block',
-                background: '#000',
-                borderRadius: 'var(--radius-lg, 24px)',
-                border: '1px solid var(--glass-edge, rgba(128,128,128,.25))',
-              }}
-            >
-              <source src={artifact.video.src} type="video/mp4" />
-              {artifact.video.captions && (
-                <track kind="captions" src={artifact.video.captions} srcLang="en" label="English" default />
-              )}
-            </video>
-          </figure>
-        )}
-
         <header style={{ display: 'grid', gap: 12 }}>
           <span
             className="mono glass-micro"
@@ -139,6 +108,10 @@ export default async function ArtifactPage({ params }: { params: Promise<{ slug:
           )}
         </header>
 
+        {/* The same template for every artifact: header, then its media, then its
+          * text. Video first, then clips, then stills (lib/media.ts). */}
+        {slides.length > 0 && <MediaCarousel slides={slides} label={`${artifact.title}: images and video`} />}
+
         {artifact.layout === 'walkthrough' ? (
           <>
             <Walkthrough script={getWalkthrough(artifact.slug)} />
@@ -173,22 +146,6 @@ export default async function ArtifactPage({ params }: { params: Promise<{ slug:
           </>
         ) : (
           <>
-            {/* The hero carries no ink. Text over media is the backdrop stage's job and
-              * nowhere else's, so this is just the image. */}
-            <img
-              src={artifact.hero.src}
-              alt={artifact.hero.alt}
-              width={artifact.hero.width}
-              height={artifact.hero.height}
-              style={{
-                width: '100%',
-                height: 'auto',
-                display: 'block',
-                borderRadius: 'var(--radius-lg, 24px)',
-                border: '1px solid var(--glass-edge, rgba(128,128,128,.25))',
-              }}
-            />
-
             {/* Sibling glass cards, never nested: .glass .glass drops its filter by design,
               * so wrapping these in a glass panel would silently flatten all of them. */}
             <div style={{ display: 'grid', gap: 16 }}>
@@ -196,31 +153,6 @@ export default async function ArtifactPage({ params }: { params: Promise<{ slug:
                 <ArtifactSection key={s.id} section={s} />
               ))}
             </div>
-
-            {/* Media the author never placed in a section. Empty when everything is
-              * placed, which is the intent; present so an unplaced still or clip is
-              * visible rather than lost. */}
-            {unplaced.length > 0 && (
-              <section style={{ display: 'grid', gap: 24 }}>
-                <h2
-                  style={{
-                    margin: 0,
-                    fontFamily: 'var(--font-display)',
-                    fontSize: 'clamp(22px,2.2vw,28px)',
-                    letterSpacing: '-.02em',
-                    fontWeight: 600,
-                    color: 'var(--glass-text)',
-                  }}
-                >
-                  Gallery
-                </h2>
-                <div style={{ display: 'grid', gap: 40 }}>
-                  {unplaced.map(m => (
-                    <MediaFigure key={m.kind === 'still' ? m.still.src : m.clip.src} media={m} />
-                  ))}
-                </div>
-              </section>
-            )}
           </>
         )}
       </article>

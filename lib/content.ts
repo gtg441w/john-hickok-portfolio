@@ -13,7 +13,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import matter from 'gray-matter'
-import { Artifact, type Clip, type Still } from './content.schema'
+import { Artifact } from './content.schema'
 
 const ARTIFACTS_DIR = path.join(process.cwd(), 'content', 'artifacts')
 
@@ -78,65 +78,27 @@ export function getPublishedSlugs(): string[] {
 }
 
 /* ── Sections ─────────────────────────────────────────────────────────────────
-   The reading view renders the body as one card per `## ` heading, each with its
-   own stills beside it.
+   The reading view renders the body as one card per `## ` heading. Text only: every
+   still and clip an artifact has is shown in the carousel at the top of the page, in
+   frontmatter order (lib/media.ts), so a section never places media of its own.
 
-   WHERE THE PAIRING IS AUTHORED. A still belongs to a section because the section
-   says so, as an ordinary markdown image on its own line:
-
-       ## The decision
-       ![](/artifacts/sco-cash-management/pickup-event-sequence.png)
-
-   The line is only a reference. Everything the page needs to render the image —
-   intrinsic width and height, alt, caption — comes from the matching entry in the
-   validated `gallery` frontmatter, matched by src. That keeps the schema untouched
-   (it is shared with other artifacts in progress) and keeps the metadata where Zod
-   can check it, rather than in markdown where a missing width would surface as
-   layout shift on a glass page instead of as a failed build.
-
-   Clips are placed the same way: a reference line whose src matches an entry in
-   `clips`. A section's media keeps the order its lines are written in.
-
-   A reference to a src that is in neither list throws, for the same reason the loader
-   throws on bad frontmatter: media with no intrinsic dimensions is a defect, and the
-   build is the cheapest place to find it. */
-
-/** One placed piece of media. A clip's box and text alternative come from its poster. */
-export type Media = { kind: 'still'; still: Still } | { kind: 'clip'; clip: Clip }
-
-/** The frame a piece of media is sized and described by. */
-export function frameOf(m: Media): Still {
-  return m.kind === 'still' ? m.still : m.clip.poster
-}
+   A markdown image in the body throws. It would render with no intrinsic width and
+   height, which on a glass page surfaces as layout shift rather than as a failed
+   build; the frontmatter `gallery` or `clips` is where media goes. */
 
 export type ArtifactSection = {
   id: string
   heading: string
-  /** Markdown with the media-reference lines removed. Rendered by the page. */
   markdown: string
-  media: Media[]
 }
 
-const MEDIA_REF = /^!\[[^\]]*\]\(([^)\s]+)\)\s*$/
+const MEDIA_REF = /^!\[[^\]]*\]\(([^)\s]+)\)\s*$/m
 
 function slugify(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }
 
-export function getSections(artifact: LoadedArtifact): {
-  sections: ArtifactSection[]
-  /** Media no section referenced. Rendered after the sections, so a still or clip
-   *  that was never placed is shown rather than silently dropped. */
-  unplaced: Media[]
-} {
-  const all: Media[] = [
-    ...artifact.gallery.map(still => ({ kind: 'still' as const, still })),
-    ...artifact.clips.map(clip => ({ kind: 'clip' as const, clip })),
-  ]
-  const srcOf = (m: Media) => (m.kind === 'still' ? m.still.src : m.clip.src)
-  const bySrc = new Map(all.map(m => [srcOf(m), m]))
-  const placed = new Set<string>()
-
+export function getSections(artifact: LoadedArtifact): ArtifactSection[] {
   /* Split on level-2 headings only. Anything before the first heading has no card
    * to live in, so it is kept as an untitled lead section rather than lost. */
   const chunks = artifact.body.split(/^## /m)
@@ -147,33 +109,21 @@ export function getSections(artifact: LoadedArtifact): {
     const isLead = i === 0
     const newline = chunk.indexOf('\n')
     const heading = isLead ? '' : (newline === -1 ? chunk : chunk.slice(0, newline)).trim()
-    const rest = isLead ? chunk : newline === -1 ? '' : chunk.slice(newline + 1)
+    const markdown = (isLead ? chunk : newline === -1 ? '' : chunk.slice(newline + 1)).trim()
 
-    const media: Media[] = []
-    const markdown = rest
-      .split('\n')
-      .filter(line => {
-        const m = line.match(MEDIA_REF)
-        if (!m) return true
-        const item = bySrc.get(m[1])
-        if (!item) {
-          throw new Error(
-            `content/artifacts/${artifact.slug}/index.md: section "${heading || '(lead)'}" ` +
-              `references ${m[1]}, which is in neither the gallery nor the clips ` +
-              `frontmatter. Add it there with width, height and alt, or remove the reference.`
-          )
-        }
-        media.push(item)
-        placed.add(m[1])
-        return false
-      })
-      .join('\n')
-      .trim()
+    const ref = markdown.match(MEDIA_REF)
+    if (ref) {
+      throw new Error(
+        `content/artifacts/${artifact.slug}/index.md: section "${heading || '(lead)'}" ` +
+          `has an inline image, ${ref[1]}. Media is shown in the carousel at the top of ` +
+          `the page: list it in the gallery or clips frontmatter and remove the line.`
+      )
+    }
 
-    sections.push({ id: isLead ? 'lead' : slugify(heading), heading, markdown, media })
+    sections.push({ id: isLead ? 'lead' : slugify(heading), heading, markdown })
   })
 
-  return { sections, unplaced: all.filter(m => !placed.has(srcOf(m))) }
+  return sections
 }
 
 /** "Project · NCR Voyix" — the card's kind line. */
