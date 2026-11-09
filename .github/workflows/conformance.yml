@@ -1,0 +1,31 @@
+name: Conformance
+
+# conformance.spec.ts fails the build — AA is the floor, and a report-only check on
+# a non-negotiable floor is a rule enforced by nobody. Make this job a required
+# status check on main so a failure blocks the merge.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:conformance
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
