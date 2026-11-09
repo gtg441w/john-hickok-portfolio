@@ -97,15 +97,16 @@ test('check 16 · the rule is registered', async ({ page }) => {
  *  and therefore the only caller of the scrim. Bounded media removed the other five;
  *  this is what is left to measure. */
 test.describe('in dark chrome', () => {
-  /* The contract is a dark-chrome one, and the browser defaults to light, where
-   * `.light .stage-scrim` lowers --scrim to .28 as tone on purpose. Measured in light,
-   * this would test the wrong mode; the OS preference picks the mode when none is
-   * stored (lib/theme.ts), so emulating it is how a dark-chrome visitor arrives. */
+  /* The contract is a dark-chrome one; in light chrome --scrim is .28 by design. */
   test.use({ colorScheme: 'dark' })
 
   test('scrim holds the dark-chrome contract', async ({ page }) => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
+    /* The scrim is opt-in for a stage that carries a photograph (fork CSS § 2). The
+       generative backdrop carries none, so there is nothing to scrim until one lands. */
+    const generative = await page.locator('[data-stage-generative]').count()
+    test.skip(generative > 0, 'stage is generative, not a photograph: no scrim applies')
     const scrim = await page.evaluate(() => {
       const stage = document.querySelector('.stage-scrim')
       if (!stage) return null
