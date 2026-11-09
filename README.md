@@ -22,7 +22,7 @@ tarball rather than a package manager, so `~/.local/node/bin` needs to be on `PA
 
 | Path | |
 |---|---|
-| `app/` | Routes. Server components by default — see the inventory for the four client islands. |
+| `app/` | Routes. Server components by default — see the inventory for the client islands. |
 | `app/globals.css` | The single global stylesheet. Imports the design system, then the fork. Order is load-bearing. |
 | `lib/theme.ts` | The blocking theme script. Three states; see the comment before changing it. |
 | `lib/content.schema.ts` | Zod frontmatter schema. From the handoff, not yet wired — step 3. |

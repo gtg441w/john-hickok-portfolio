@@ -24,8 +24,9 @@ Next.js (App Router) · plain CSS · Zod · Playwright. Settled at handoff; not 
   lost. Plain CSS keeps them intact.
 - **Minimal client islands.** Pages are server components. Only `ThemeToggle`,
   `SlideOverPanel`, `SearchModal`, `ConnectForm`, `Walkthrough` (the guided tour an
-  artifact with `layout: walkthrough` renders) and an animated backdrop (if one ever
-  lands) are client components. The prototype looks like one stateful app because it is
+  artifact with `layout: walkthrough` renders), `MediaCarousel` (the artifact page's
+  media), `CardMedia` (a card's media row and its hover slideshow) and an animated
+  backdrop (if one ever lands) are client components. The prototype looks like one stateful app because it is
   one file, not because that is the design.
 - **Theme needs a blocking inline script in `<head>`** setting `data-theme` before
   first paint. `theme` has three states — `null` (follow the OS), `'dark'`, `'light'` —

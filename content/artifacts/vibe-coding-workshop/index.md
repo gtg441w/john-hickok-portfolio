@@ -52,19 +52,13 @@ I was the only facilitator and the author of all of it: the exercise, the guide,
 
 ## The decision
 
-![](/artifacts/vibe-coding-workshop/snack-oracle-app.png)
-
 I wrapped a real exercise in a game instead of giving designers a slide deck or a setup document.
 
 The exercise was small on purpose. Designers built the Overdramatic Snack Oracle: a page with one big button that gives random snack advice after a dramatic pause, counts your clicks, and at five names you a Certified Snack Philosopher. They built it by describing it to Copilot in VS Code, ran it in their browser, restyled it through prompts, and then brought in a Figma design through Figma's MCP server. It is a 90-minute exercise. I chose it because it is simple enough to finish, real enough to teach state, timing and interaction, and funny enough to remember.
 
 The wrapper was a retro game. The full workshop guide lives inside it, split across ten worlds on two maps: seven for the first day (Intro Island, Terminal Town, Snack Oracle of Omaha, Character Count Canyon, Figma Fjord, Reflecting Pond, Launchpad Lagoon) and three for the second and third (Atomic Archipelago, GitHub Glacier, Debrief Dolomites). Worlds unlock in order, progress is saved, and a glossary of more than fifty engineering terms, in plain English, sits one click away as a side sheet. The game changed how the workshop felt. It did not shorten or rewrite what the workshop taught.
 
-![](/artifacts/vibe-coding-workshop/loops-and-planes.png)
-
 Day 2 changed the ask. Instead of the Snack Oracle, designers chose a real Figma frame or component from their own work, broke it into atoms and molecules from the design system, planned the states it needed, and built it back through prompts. That was the bridge from the exercise to their own work.
-
-![](/artifacts/vibe-coding-workshop/world-map-day-2.jpg)
 
 ## Reasoning
 

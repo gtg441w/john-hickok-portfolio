@@ -27,6 +27,8 @@ shipping the content as JS.
 | `ConnectForm` | Segmented selector reshapes the view; the Client path submits |
 | `Walkthrough` | A guided, in-order tour: holds position, progress and what the reader has opened. Rendered for `layout: walkthrough`; the full text stays server-rendered beneath it |
 | `BackdropSlot` | Only when filled with something animated — see below |
+| `MediaCarousel` | The artifact page's media, at the top: arrows, thumbnails, arrow keys and the "3 / 8" readout, kept in step with a native scroll-snap track. Never advances on its own |
+| `CardMedia` | An artifact card's media row only, so the card stays a server component: the hover/focus slideshow (video muted and capped at 6s, then stills every 1.5s). Off on touch screens and under reduced motion |
 
 `ScrollProbe` is a fifth candidate: the header and backdrop respond to `scrollY`. Do it
 with CSS (`position: sticky`, a scroll-driven animation) before adding a client
@@ -87,6 +89,8 @@ type ArtifactCardProps = {
   meta?: string           // "18 min · applies Altitude"
   featured?: boolean      // the accent micro label
   still: Still            // see CONTENT_SCHEMA.md
+  clip?: Clip             // play-once intro, hero card only
+  preview?: CardPreview   // hover slideshow, from cardPreview() in lib/media.ts
   size?: 'lg' | 'sm'      // lg = hero, sm = rail
 }
 ```
@@ -175,16 +179,17 @@ Segmented selector (Client / Recruiter / Colleague) reshapes the whole experienc
 - All three carry a left-column explanation of why the paths differ.
 - **One email constant, six usages.** Import it; never retype it.
 
-### `Gallery` — server
+### `MediaCarousel` — client
 
-One column, full-bleed, captions beneath. Each still keeps its own aspect ratio
-(`height: auto`, no crop) so a mix of 4:3 screenshots, tall mobile captures and wide
-diagrams coexists.
+Every artifact page is one template: header, then this carousel, then the text (or the
+walkthrough). Order comes from `articleSlides()` in `lib/media.ts`: the narrated video,
+then clips, then the hero and gallery stills. Sections carry no media of their own.
 
-> **No scrim and no measurement here.** Captions sit outside the image, so nothing is
-> set over photography and the glass rule never applies.
+Each item is fitted whole (`object-fit: contain`, no crop) in a fixed-height stage, so
+a portrait video and a wide diagram coexist without moving the text below.
 
-Sized for four stills, typical six. No pagination, no lightbox.
+> **No ink over media.** Arrows, caption and thumbnails sit below the stage on the
+> panel's glass. Every video starts muted; the narrated one keeps its controls.
 
 ## Routes
 
